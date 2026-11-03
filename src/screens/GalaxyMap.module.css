@@ -1,0 +1,7 @@
+.screen { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; }
+.title { margin: 0; font-size: clamp(2rem, 7vmin, 3.5rem); }
+.sub { margin: 0; font-size: 1.2rem; }
+.planets { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; width: min(100%, 720px); }
+.planets li { padding: 12px 16px; border-radius: 12px; border: 2px solid currentColor; display: flex; gap: 8px; justify-content: space-between; }
+.locked { opacity: 0.5; }
+.primary { min-height: 56px; padding: 0 32px; font-size: 1.4rem; font-weight: 800; border-radius: 14px; cursor: pointer; }
