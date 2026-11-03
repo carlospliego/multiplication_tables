@@ -28,6 +28,16 @@ vi.mock('./QuestScreen', () => ({
   ),
 }));
 
+vi.mock('./BossScreen', () => ({
+  BossScreen: (p: { planet: number; onFinish(r: 'won' | 'retreated'): void }) => (
+    <div>
+      <h1>Boss {p.planet}</h1>
+      <button onClick={() => p.onFinish('won')}>win</button>
+      <button onClick={() => p.onFinish('retreated')}>retreat</button>
+    </div>
+  ),
+}));
+
 import { MissionScreen } from './MissionScreen';
 import { GalaxyMap } from './GalaxyMap';
 
@@ -80,12 +90,31 @@ describe('MissionScreen', () => {
       expect(screen.getByText(title)).toBeInTheDocument();
     }
     await user.click(screen.getByText('finish'));
+    expect(screen.getByText('Boss 1')).toBeInTheDocument();
+    await user.click(screen.getByText('win'));
+    expect(latest.save!.bossesBeaten).toEqual([1]);
     expect(screen.getByText(/mission complete/i)).toBeInTheDocument();
     expect(latest.save!.mission).toEqual({ day: todayLocal(), step: 'complete' });
     expect(latest.save!.streak.current).toBe(1);
     const completions = writes.filter((w) => w.mission?.step === 'complete' && w.streak.current === 1);
     expect(completions.length).toBeGreaterThan(0);
     expect(writes.every((w) => w.streak.current <= 1 && w.streak.best <= 1)).toBe(true);
+  });
+
+  it('retreating from the boss advances without marking it beaten', async () => {
+    const user = userEvent.setup();
+    const { s } = fakeStorage(baseSave({ mission: { day: todayLocal(), step: 'boss' } }));
+    render(<GameProvider storage={s}><Probe /><MissionScreen /></GameProvider>);
+    await user.click(screen.getByText('retreat'));
+    expect(latest.save!.bossesBeaten).toEqual([]);
+    expect(latest.save!.mission!.step).toBe('complete');
+  });
+
+  it('skips the boss step when no boss is available', () => {
+    const facts = makeFacts();
+    const { s } = fakeStorage(baseSave({ facts, mission: { day: todayLocal(), step: 'boss' } }));
+    render(<GameProvider storage={s}><Probe /><MissionScreen /></GameProvider>);
+    expect(latest.save!.mission!.step).toBe('complete');
   });
 
   it('resumes at the saved step on the same day', () => {

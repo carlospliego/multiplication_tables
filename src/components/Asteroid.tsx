@@ -6,12 +6,12 @@ function polar(r: number, deg: number): [number, number] {
 }
 
 /** Boss asteroid wrapped in `max` shield arc segments; the first `shield` are lit. */
-export function Asteroid({ shield, max = 12, size = 200 }: { shield: number; max?: number; size?: number }) {
+export function Asteroid({ shield, max = 12, size = 200, label }: { shield: number; max?: number; size?: number; label?: string }) {
   const on = Math.max(0, Math.min(max, Math.round(shield)));
   const step = 360 / max;
   const gap = 6;
   return (
-    <svg className={styles.asteroid} width={size} height={size} viewBox="0 0 120 120" role="img" aria-label={`Asteroid shield ${on} of ${max}`}>
+    <svg className={styles.asteroid} width={size} height={size} viewBox="0 0 120 120" role="img" aria-label={label ?? `Asteroid shield ${on} of ${max}`}>
       <g className={styles.rock}>
         <path d="M60 24 L82 30 L94 50 L90 74 L72 92 L46 94 L28 78 L26 52 L38 32 Z" fill="#7a6a8a" stroke="#0b1030" strokeWidth="4" strokeLinejoin="round" />
         <circle cx="48" cy="52" r="7" fill="#5c4e6e" />
