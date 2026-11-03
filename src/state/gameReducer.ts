@@ -24,7 +24,7 @@ export type GameAction =
   | { type: 'answer'; factId: FactId; answer: AnswerInput; today: Day; mode: 'normal' | 'placement'; activeSeconds: number }
   | { type: 'finishPlacement' }
   | { type: 'startMission'; today: Day }
-  | { type: 'advanceMission'; today: Day }
+  | { type: 'advanceMission'; today: Day; summary?: { answered: number; lightning: number }; bossWon?: PlanetId }
   | { type: 'completeMission' }
   | { type: 'bossBeaten'; planet: PlanetId }
   | { type: 'markCelebrated'; planet?: PlanetId; galaxyMaster?: boolean }
@@ -106,7 +106,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'advanceMission': {
       const m = missionForToday(save.mission, action.today);
       const bossAvailable = availableBoss(save.facts, save.bossesBeaten) !== null;
-      const next = advanceMission(m, bossAvailable);
+      let next = advanceMission(m, bossAvailable);
+      if (action.summary || action.bossWon) {
+        const t = m.tally ?? { answered: 0, lightning: 0, bossWon: null };
+        next = {
+          ...next,
+          tally: {
+            answered: t.answered + (action.summary?.answered ?? 0),
+            lightning: t.lightning + (action.summary?.lightning ?? 0),
+            bossWon: action.bossWon ?? t.bossWon,
+          },
+        };
+      }
       return withSave({
         mission: next,
         ...(next.step === 'complete' ? { streak: applyMissionComplete(save.streak, next.day) } : {}),

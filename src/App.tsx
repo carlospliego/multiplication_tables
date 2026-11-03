@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
+import { setMuted, unlockAudio } from './audio/sfx';
 import { GameProvider, useGame } from './state/GameContext';
 import { FreeFlight } from './screens/FreeFlight';
 import { GalaxyMap } from './screens/GalaxyMap';
+import { Hangar } from './screens/Hangar';
 import { MissionScreen } from './screens/MissionScreen';
+import { StarMap } from './screens/StarMap';
 import { SystemsCheck } from './screens/SystemsCheck';
 import { Welcome } from './screens/Welcome';
 
@@ -9,6 +13,24 @@ export const GAME_TITLE = 'Times Table Rocket';
 
 function Screens() {
   const { state } = useGame();
+  const soundOn = state.save?.settings.soundOn ?? true;
+  useEffect(() => {
+    setMuted(!soundOn);
+  }, [soundOn]);
+  useEffect(() => {
+    const unlock = () => {
+      // Keep listening until a context was actually created, so a failed attempt can retry.
+      if (!unlockAudio()) return;
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
   if (!state.save) return <Welcome />;
   switch (state.screen) {
     case 'welcome':
@@ -19,8 +41,12 @@ function Screens() {
       return <MissionScreen />;
     case 'freeFlight':
       return <FreeFlight />;
+    case 'starMap':
+      return <StarMap />;
+    case 'hangar':
+      return <Hangar />;
     default:
-      // map, plus screens that arrive in later tasks (starMap, hangar, parent*)
+      // map, plus screens that arrive in later tasks (parent*)
       return <GalaxyMap />;
   }
 }

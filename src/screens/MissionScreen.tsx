@@ -4,8 +4,10 @@ import { missionForToday } from '../engine/mission';
 import type { MissionStep } from '../engine/mission';
 import { createRng } from '../engine/rng';
 import { buildQuest, buildWarmup } from '../engine/scheduler';
-import type { AnswerInput, FactId, Question } from '../engine/types';
+import { availableBoss } from '../engine/progress';
+import type { AnswerInput, FactId, PlanetId, Question } from '../engine/types';
 import { useGame } from '../state/GameContext';
+import { BossScreen } from './BossScreen';
 import { MissionComplete } from './MissionComplete';
 import { QuestScreen } from './QuestScreen';
 
@@ -15,6 +17,8 @@ const TITLES: Partial<Record<MissionStep, string>> = {
   quest2: 'Quest 2',
   quest3: 'Quest 3',
 };
+
+type Summary = { answered: number; lightning: number };
 
 function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3' }) {
   const { state, dispatch } = useGame();
@@ -34,7 +38,9 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
     [dispatch],
   );
   const onComplete = useCallback(
-    () => dispatch({ type: 'advanceMission', today: todayLocal() }),
+    (summary: Summary) => {
+      dispatch({ type: 'advanceMission', today: todayLocal(), summary });
+    },
     [dispatch],
   );
   const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
@@ -51,15 +57,45 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
   );
 }
 
-function BossPlaceholder() {
-  const { dispatch } = useGame();
+function MissionBoss() {
+  const { state, dispatch } = useGame();
+  const [rng] = useState(() => createRng(Date.now()));
+  // Captured once when the step starts so later progress can't change the boss mid-fight.
+  const [planet] = useState<PlanetId | null>(() =>
+    availableBoss(state.save!.facts, state.save!.bossesBeaten),
+  );
+  const [facts] = useState(() => state.save!.facts);
   const advanced = useRef(false);
+
   useEffect(() => {
-    if (advanced.current) return;
-    advanced.current = true;
-    dispatch({ type: 'advanceMission', today: todayLocal() });
-  }, [dispatch]);
-  return null;
+    if (planet === null && !advanced.current) {
+      advanced.current = true;
+      dispatch({ type: 'advanceMission', today: todayLocal() });
+    }
+  }, [planet, dispatch]);
+
+  const onAnswer = useCallback(
+    (factId: FactId, answer: AnswerInput, activeSeconds: number) =>
+      dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
+    [dispatch],
+  );
+  const onFinish = useCallback(
+    (result: 'won' | 'retreated', summary: Summary) => {
+      if (advanced.current || planet === null) return;
+      advanced.current = true;
+      if (result === 'won') dispatch({ type: 'bossBeaten', planet });
+      dispatch({
+        type: 'advanceMission',
+        today: todayLocal(),
+        summary,
+        ...(result === 'won' ? { bossWon: planet } : {}),
+      });
+    },
+    [dispatch, planet],
+  );
+
+  if (planet === null) return null;
+  return <BossScreen key={`boss-${planet}`} planet={planet} facts={facts} rng={rng} onAnswer={onAnswer} onFinish={onFinish} />;
 }
 
 export function MissionScreen() {
@@ -80,7 +116,7 @@ export function MissionScreen() {
     case 'quest3':
       return <MissionQuest key={mission.step} step={mission.step} />;
     case 'boss':
-      return <BossPlaceholder key="boss" />;
+      return <MissionBoss key="boss" />;
     case 'complete':
       return <MissionComplete />;
   }

@@ -1,0 +1,3 @@
+.flame { display: block; transform-origin: 50% 90%; }
+.lit { animation: flameFlicker 0.8s ease-in-out infinite alternate; }
+@keyframes flameFlicker { to { transform: scale(1.06, 1.1); } }

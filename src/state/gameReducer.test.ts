@@ -94,6 +94,17 @@ describe('gameReducer', () => {
     expect(gameReducer(st, { type: 'startMission', today: D2 }).save!.mission).toEqual({ day: D2, step: 'warmup' });
   });
 
+  it('advanceMission accumulates the tally and resets on a new day', () => {
+    let st = withSave({ mission: { day: D1, step: 'warmup' } });
+    st = gameReducer(st, { type: 'advanceMission', today: D1, summary: { answered: 5, lightning: 1 } });
+    st = gameReducer(st, { type: 'advanceMission', today: D1, summary: { answered: 15, lightning: 4 } });
+    expect(st.save!.mission!.tally).toEqual({ answered: 20, lightning: 5, bossWon: null });
+    st = gameReducer(st, { type: 'advanceMission', today: D1, summary: { answered: 2, lightning: 0 }, bossWon: 3 });
+    expect(st.save!.mission!.tally).toEqual({ answered: 22, lightning: 5, bossWon: 3 });
+    const next = gameReducer(st, { type: 'advanceMission', today: '2099-01-01', summary: { answered: 1, lightning: 1 } });
+    expect(next.save!.mission!.tally).toEqual({ answered: 1, lightning: 1, bossWon: null });
+  });
+
   it('advanceMission quest3 -> boss when available, else complete', () => {
     const mission = { day: D1, step: 'quest3' as const };
     const none = withSave({ mission });

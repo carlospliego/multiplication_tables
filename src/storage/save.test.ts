@@ -175,6 +175,13 @@ describe('validateSave', () => {
     ).not.toBeNull();
     expect(validateSave({ ...b, mission: { day: '2026-11-02', step: 'boss' } })).not.toBeNull();
     expect(validateSave({ ...b, mission: { day: '2026-11-02', step: 'fly' } })).toBeNull();
+    const good = { answered: 3, lightning: 1, bossWon: null };
+    expect(validateSave({ ...b, mission: { day: '2026-11-02', step: 'boss', tally: good } })!.mission!.tally).toEqual(good);
+    for (const bad of [{ answered: -1, lightning: 0, bossWon: null }, 'x', { answered: 1, lightning: 1, bossWon: 12 }]) {
+      const v = validateSave({ ...b, mission: { day: '2026-11-02', step: 'boss', tally: bad } });
+      expect(v).not.toBeNull();
+      expect(v!.mission).toEqual({ day: '2026-11-02', step: 'boss' });
+    }
     expect(validateSave({ ...b, dailyActiveSeconds: { '2026-11-02': 600 } })).not.toBeNull();
     expect(validateSave({ ...b, dailyActiveSeconds: { '2026-11-02': -1 } })).toBeNull();
     expect(validateSave({ ...b, dailyActiveSeconds: { bad: 1 } })).toBeNull();

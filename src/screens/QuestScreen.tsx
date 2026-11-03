@@ -7,6 +7,7 @@ import { LightningBurst } from '../components/LightningBurst';
 import { currentQuestion, fuelFraction, isQuestDone, recordQuestResult, startQuestRun } from '../engine/questRun';
 import { isFastAnswer } from '../engine/levels';
 import type { AnswerInput, FactId, Question, Rng } from '../engine/types';
+import { play } from '../audio/sfx';
 import styles from './QuestScreen.module.css';
 
 export const FEEDBACK_MS = 900;
@@ -54,12 +55,14 @@ export function QuestScreen({ title, queue, rng, onAnswer, onComplete, onExit }:
     onAnswer(q.factId, ans, activeSeconds);
     setRun(recordQuestResult(run, r.correct, fast, rng));
     if (r.correct) {
+      play(fast ? 'lightning' : 'correct');
       setFeedback({ fast });
       feedbackTimer.current = setTimeout(() => {
         feedbackTimer.current = null;
         setFeedback(null);
       }, FEEDBACK_MS);
     } else {
+      play('wrong');
       setRepair(q);
     }
   };

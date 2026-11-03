@@ -1,0 +1,36 @@
+:root {
+  --space-bg: #0b1030;
+  --space-bg-2: #151b4d;
+  --space-panel: #1e2766;
+  --ink: #f4f6ff;
+  --ink-dim: #aab3e6;
+  --neon-cyan: #35e0ff;
+  --neon-pink: #ff4fd8;
+  --neon-lime: #8dff4f;
+  --neon-yellow: #ffd23f;
+  --neon-orange: #ff8a2b;
+  --danger: #ff5c6c;
+  --radius: 20px;
+  --font-body: 'Fredoka', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--space-bg);
+  background-image: radial-gradient(ellipse at top, var(--space-bg-2), var(--space-bg) 70%);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,10 +1,17 @@
 import { daysBetween } from './dates';
-import type { Day } from './types';
+import type { Day, PlanetId } from './types';
 
 export type MissionStep = 'warmup' | 'quest1' | 'quest2' | 'quest3' | 'boss' | 'complete';
 export interface MissionState {
   day: Day;
   step: MissionStep;
+  /** Running totals for today's mission (optional: absent in old saves). */
+  tally?: MissionTally;
+}
+export interface MissionTally {
+  answered: number;
+  lightning: number;
+  bossWon: PlanetId | null;
 }
 export interface Streak {
   current: number;
