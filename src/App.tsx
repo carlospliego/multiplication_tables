@@ -75,8 +75,10 @@ function StorageBanner() {
 export function App() {
   return (
     <GameProvider>
-      <StorageBanner />
-      <Screens />
+      <div className="app-shell">
+        <StorageBanner />
+        <Screens />
+      </div>
     </GameProvider>
   );
 }

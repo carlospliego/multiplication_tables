@@ -35,4 +35,6 @@ body {
   }
 }
 
-.storage-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 4px 8px; text-align: center; font-size: 0.85rem; font-weight: 700; background: var(--neon-yellow); color: var(--space-bg); pointer-events: none; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.app-shell > :last-child { flex: 1; }
+.storage-banner { flex: none; padding: 4px 8px; text-align: center; font-size: 0.85rem; font-weight: 700; background: var(--neon-yellow); color: var(--space-bg); }
