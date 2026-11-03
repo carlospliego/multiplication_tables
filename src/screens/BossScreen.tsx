@@ -4,6 +4,8 @@ import { QuestionCard, type AnswerResult } from '../components/QuestionCard';
 import { RepairScreen } from '../components/RepairScreen';
 import { BOSS_SHIELD, nextBossQuestion, recordBossAnswer, startBoss } from '../engine/boss';
 import type { AnswerInput, FactId, Facts, PlanetId, Question, Rng } from '../engine/types';
+import { play } from '../audio/sfx';
+import { isFastAnswer } from '../engine/levels';
 import styles from './BossScreen.module.css';
 
 export const BOSS_FEEDBACK_MS = 700;
@@ -40,12 +42,16 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
     setRun(next);
     if (next.status === 'fighting') setQ(nextBossQuestion(facts, next, rng));
     if (r.correct) {
+      play(isFastAnswer({ correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted }) ? 'lightning' : 'correct');
+      play('laser');
+      if (next.status === 'won') play('explosion');
       setZapping(true);
       timer.current = setTimeout(() => {
         timer.current = null;
         setZapping(false);
       }, BOSS_FEEDBACK_MS);
     } else {
+      play('wrong');
       setRepair(q);
     }
   };

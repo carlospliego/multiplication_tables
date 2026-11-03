@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { setMuted, unlockAudio } from './audio/sfx';
 import { GameProvider, useGame } from './state/GameContext';
 import { FreeFlight } from './screens/FreeFlight';
 import { GalaxyMap } from './screens/GalaxyMap';
@@ -11,6 +13,23 @@ export const GAME_TITLE = 'Times Table Rocket';
 
 function Screens() {
   const { state } = useGame();
+  const soundOn = state.save?.settings.soundOn ?? true;
+  useEffect(() => {
+    setMuted(!soundOn);
+  }, [soundOn]);
+  useEffect(() => {
+    const unlock = () => {
+      unlockAudio();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
   if (!state.save) return <Welcome />;
   switch (state.screen) {
     case 'welcome':

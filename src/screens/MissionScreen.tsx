@@ -18,7 +18,9 @@ const TITLES: Partial<Record<MissionStep, string>> = {
   quest3: 'Quest 3',
 };
 
-function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3' }) {
+type Summary = { answered: number; lightning: number };
+
+function MissionQuest({ step, onSummary }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3'; onSummary(s: Summary): void }) {
   const { state, dispatch } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
   // Built once per mount (the parent keys this component by step), from the latest facts.
@@ -36,8 +38,11 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
     [dispatch],
   );
   const onComplete = useCallback(
-    () => dispatch({ type: 'advanceMission', today: todayLocal() }),
-    [dispatch],
+    (summary: Summary) => {
+      onSummary(summary);
+      dispatch({ type: 'advanceMission', today: todayLocal() });
+    },
+    [dispatch, onSummary],
   );
   const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
 
@@ -53,7 +58,7 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
   );
 }
 
-function MissionBoss() {
+function MissionBoss({ onWon }: { onWon(planet: PlanetId): void }) {
   const { state, dispatch } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
   // Captured once when the step starts so later progress can't change the boss mid-fight.
@@ -79,10 +84,13 @@ function MissionBoss() {
     (result: 'won' | 'retreated') => {
       if (advanced.current || planet === null) return;
       advanced.current = true;
-      if (result === 'won') dispatch({ type: 'bossBeaten', planet });
+      if (result === 'won') {
+        onWon(planet);
+        dispatch({ type: 'bossBeaten', planet });
+      }
       dispatch({ type: 'advanceMission', today: todayLocal() });
     },
-    [dispatch, planet],
+    [dispatch, planet, onWon],
   );
 
   if (planet === null) return null;
@@ -93,6 +101,12 @@ export function MissionScreen() {
   const { state, dispatch } = useGame();
   const today = todayLocal();
   const mission = missionForToday(state.save?.mission ?? null, today);
+  const [totals, setTotals] = useState<Summary>({ answered: 0, lightning: 0 });
+  const [bossWon, setBossWon] = useState<PlanetId | null>(null);
+  const addSummary = useCallback(
+    (s: Summary) => setTotals((t) => ({ answered: t.answered + s.answered, lightning: t.lightning + s.lightning })),
+    [],
+  );
   const needsStart = !state.save?.mission || state.save.mission.day !== today;
 
   useEffect(() => {
@@ -105,10 +119,10 @@ export function MissionScreen() {
     case 'quest1':
     case 'quest2':
     case 'quest3':
-      return <MissionQuest key={mission.step} step={mission.step} />;
+      return <MissionQuest key={mission.step} step={mission.step} onSummary={addSummary} />;
     case 'boss':
-      return <MissionBoss key="boss" />;
+      return <MissionBoss key="boss" onWon={setBossWon} />;
     case 'complete':
-      return <MissionComplete />;
+      return <MissionComplete answered={totals.answered} lightning={totals.lightning} bossWon={bossWon} />;
   }
 }

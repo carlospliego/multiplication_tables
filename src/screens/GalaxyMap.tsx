@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
 import { PLANETS } from '../engine/facts';
 import { isMissionDoneToday } from '../engine/mission';
@@ -52,6 +53,7 @@ export function GalaxyMap() {
     // Mark every open planet as celebrated so a placement result never replays them.
     for (const p of unmarked) dispatch({ type: 'markCelebrated', planet: p });
     if (masterPending) dispatch({ type: 'markCelebrated', galaxyMaster: true });
+    if (queue.length > 0) play('celebrate');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -92,6 +94,7 @@ export function GalaxyMap() {
           type="button"
           className={styles.primary}
           onClick={() => {
+            play('launch');
             dispatch({ type: 'startMission', today: todayLocal() });
             dispatch({ type: 'navigate', screen: 'mission' });
           }}
