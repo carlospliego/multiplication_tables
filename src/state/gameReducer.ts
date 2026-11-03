@@ -106,7 +106,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'advanceMission': {
       const m = missionForToday(save.mission, action.today);
       const bossAvailable = availableBoss(save.facts, save.bossesBeaten) !== null;
-      return withSave({ mission: advanceMission(m, bossAvailable) });
+      const next = advanceMission(m, bossAvailable);
+      return withSave({
+        mission: next,
+        ...(next.step === 'complete' ? { streak: applyMissionComplete(save.streak, next.day) } : {}),
+      });
     }
     case 'completeMission': {
       if (!save.mission) return state;

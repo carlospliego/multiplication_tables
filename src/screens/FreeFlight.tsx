@@ -18,6 +18,14 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
     [dispatch],
   );
   const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
+  if (queue.length === 0) {
+    return (
+      <main>
+        <p>Nothing to practise yet. Complete a mission first!</p>
+        <button type="button" onClick={onExit}>Back to the map</button>
+      </main>
+    );
+  }
   return (
     <QuestScreen
       title="Free Flight"

@@ -104,6 +104,16 @@ describe('gameReducer', () => {
     expect(gameReducer(boss, { type: 'advanceMission', today: D1 }).save!.mission!.step).toBe('boss');
   });
 
+  it('advanceMission into complete applies the streak once; completeMission does not double-count', () => {
+    const st = withSave({ mission: { day: D1, step: 'quest3' } });
+    const adv = gameReducer(st, { type: 'advanceMission', today: D1 });
+    expect(adv.save!.streak).toEqual({ current: 1, best: 1, lastMissionDay: D1 });
+    const again = gameReducer(adv, { type: 'completeMission' });
+    expect(again.save!.streak).toEqual({ current: 1, best: 1, lastMissionDay: D1 });
+    const mid = gameReducer(withSave({ mission: { day: D1, step: 'quest2' } }), { type: 'advanceMission', today: D1 });
+    expect(mid.save!.streak.current).toBe(0);
+  });
+
   it('completeMission updates streak using mission.day', () => {
     const st = withSave({ mission: { day: D1, step: 'complete' } });
     const s = gameReducer(st, { type: 'completeMission' });
