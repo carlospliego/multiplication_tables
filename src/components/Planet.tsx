@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import type { PlanetId } from '../engine/types';
 import { PLANETS } from '../engine/facts';
 import styles from './Planet.module.css';
@@ -23,13 +23,13 @@ function feature(id: number): ReactNode {
   switch (id) {
     case 1: return <><circle cx="38" cy="40" r="9" fill={f} /><circle cx="64" cy="62" r="6" fill={f} /><circle cx="58" cy="30" r="4" fill={f} /></>;
     case 2: return <><rect x="14" y="42" width="72" height="8" rx="4" fill={f} /><rect x="20" y="60" width="60" height="8" rx="4" fill={f} /></>;
-    case 3: return <><ellipse cx="50" cy="50" rx="52" ry="9" fill="none" stroke="#fff" strokeWidth="5" opacity="0.7" /></>;
+    case 3: return <><circle cx="40" cy="38" r="7" fill={f} /><circle cx="62" cy="64" r="5" fill={f} /></>;
     case 4: return <><path d="M30 34 L44 34 L37 46 Z M58 58 L74 58 L66 72 Z" fill={f} /></>;
     case 5: return <><path d="M22 66 Q36 48 50 66 Q64 48 78 66" fill="none" stroke={f} strokeWidth="6" strokeLinecap="round" /><circle cx="42" cy="32" r="6" fill={f} /></>;
     case 6: return <><circle cx="36" cy="38" r="10" fill="none" stroke={f} strokeWidth="5" /><circle cx="64" cy="60" r="12" fill="none" stroke={f} strokeWidth="5" /></>;
     case 7: return <><path d="M50 18 L54 40 L76 40 L58 53 L65 74 L50 61 L35 74 L42 53 L24 40 L46 40 Z" fill={f} /></>;
     case 8: return <><circle cx="38" cy="36" r="6" fill={f} /><circle cx="60" cy="30" r="6" fill={f} /><circle cx="68" cy="52" r="6" fill={f} /><circle cx="44" cy="62" r="6" fill={f} /><circle cx="28" cy="56" r="6" fill={f} /></>;
-    default: return <><path d="M50 22 L56 40 L76 40 L60 52 L66 70 L50 59 L34 70 L40 52 L24 40 L44 40 Z" fill="#fff" opacity="0.6" /></>;
+    default: return <><circle cx="50" cy="50" r="28" fill="none" stroke="#fff" strokeWidth="5" opacity="0.6" /><circle cx="50" cy="50" r="13" fill="#fff" opacity="0.6" /></>;
   }
 }
 
@@ -45,10 +45,10 @@ export function Planet({ planet, state, size = 96 }: { planet: PlanetId; state: 
   const info = PLANETS[planet - 1]!;
   const c = COLORS[planet]!;
   const locked = state === 'locked';
-  const clip = `planet-clip-${planet}`;
+  const clip = `planet-clip-${useId().replace(/:/g, '')}`;
   return (
     <svg
-      className={`${styles.planet} ${styles[state]}`}
+      className={[styles.planet, styles[state]].filter(Boolean).join(' ')}
       width={size}
       height={size}
       viewBox="-8 -8 116 116"
@@ -69,6 +69,9 @@ export function Planet({ planet, state, size = 96 }: { planet: PlanetId; state: 
         </g>
       )}
       <circle cx="50" cy="50" r="42" fill="none" stroke="#0b1030" strokeWidth="4" />
+      {planet === 3 && !locked && (
+        <ellipse cx="50" cy="50" rx="52" ry="14" transform="rotate(-18 50 50)" fill="none" stroke="#fff6c8" strokeWidth="6" />
+      )}
       {locked && (
         <g>
           <path d="M40 48 V40 A10 10 0 0 1 60 40 V48" fill="none" stroke="#aab3e6" strokeWidth="6" strokeLinecap="round" />

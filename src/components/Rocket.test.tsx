@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Rocket } from './Rocket';
 import { Planet } from './Planet';
 import { Asteroid } from './Asteroid';
+import { Alien } from './Alien';
 import { PLANETS } from '../engine/facts';
 
 describe('Rocket', () => {
@@ -30,5 +31,30 @@ describe('Asteroid', () => {
     const { container } = render(<Asteroid shield={5} max={12} />);
     expect(container.querySelectorAll('[data-seg]')).toHaveLength(12);
     expect(container.querySelectorAll('[data-seg="on"]')).toHaveLength(5);
+  });
+});
+
+describe('fix round 1', () => {
+  it('gives each Planet instance a unique clipPath id', () => {
+    const { container } = render(<><Planet planet={3} state="open" /><Planet planet={3} state="open" /></>);
+    const ids = [...container.querySelectorAll('clipPath')].map((c) => c.id);
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).not.toBe(ids[1]);
+  });
+  it('never emits "undefined" in a Planet class', () => {
+    const { container } = render(<Planet planet={1} state="locked" />);
+    expect(container.querySelector('svg')!.getAttribute('class')).not.toContain('undefined');
+  });
+  it('renders the Alien silhouette differently', () => {
+    const a = render(<Alien planet={2} />).container.innerHTML;
+    const b = render(<Alien planet={2} silhouette />).container.innerHTML;
+    expect(a).not.toBe(b);
+    expect(b).toContain('data-silhouette="true"');
+    expect(b).not.toContain('circle cx="38"');
+  });
+  it('keeps the cockpit window above Golden Paint', () => {
+    const { container } = render(<Rocket parts={['Golden Paint', 'Bubble Cockpit']} />);
+    const html = container.innerHTML;
+    expect(html.indexOf('data-part="Golden Paint"')).toBeLessThan(html.indexOf('data-part="Bubble Cockpit"'));
   });
 });

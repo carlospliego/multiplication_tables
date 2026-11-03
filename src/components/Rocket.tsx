@@ -62,15 +62,15 @@ export function Rocket({ parts, size = 160, state = 'idle' }: RocketProps) {
           <circle cx="60" cy="6" r="6" fill="#8dff4f" stroke="#2a3380" strokeWidth="3" />
         </g>
       )}
+      {has('Golden Paint') && (
+        <path data-part="Golden Paint" d="M60 14 C86 40 88 84 84 132 L36 132 C32 84 34 40 60 14 Z" fill="#ffd23f" fillOpacity="0.55" stroke="#ffb400" strokeWidth="4" strokeLinejoin="round" />
+      )}
       <circle cx="60" cy="72" r="15" fill="#35e0ff" stroke="#2a3380" strokeWidth="4" />
       {has('Bubble Cockpit') && (
         <g data-part="Bubble Cockpit">
           <circle cx="60" cy="72" r="20" fill="#35e0ff" fillOpacity="0.45" stroke="#2a3380" strokeWidth="4" />
           <path d="M50 64 Q54 58 60 58" stroke="#fff" strokeWidth="3" strokeLinecap="round" fill="none" />
         </g>
-      )}
-      {has('Golden Paint') && (
-        <path data-part="Golden Paint" d="M60 14 C86 40 88 84 84 132 L36 132 C32 84 34 40 60 14 Z" fill="#ffd23f" fillOpacity="0.55" stroke="#ffb400" strokeWidth="4" strokeLinejoin="round" />
       )}
     </svg>
   );
