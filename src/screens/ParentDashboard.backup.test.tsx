@@ -30,7 +30,7 @@ describe('backup, reset and notices', () => {
     render(<ParentDashboard />);
     await userEvent.click(screen.getByRole('button', { name: /export/i }));
     expect(downloadSave).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(downloadSave).mock.calls[0][0]).toBe(state.save);
+    expect(vi.mocked(downloadSave).mock.calls[0]?.[0]).toBe(state.save);
   });
 
   it('rejects an invalid file without dispatching', async () => {

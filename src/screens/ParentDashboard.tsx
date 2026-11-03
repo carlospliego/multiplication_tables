@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
@@ -19,7 +19,6 @@ export function ParentDashboard() {
   const [pending, setPending] = useState<SaveData | null>(null);
   const [importError, setImportError] = useState(false);
   const [resetText, setResetText] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
   const save = state.save;
   if (!save) return null;
 
@@ -115,7 +114,7 @@ export function ParentDashboard() {
           </button>
           <label className={styles.fileLabel}>
             Import a save file
-            <input ref={fileRef} type="file" accept="application/json,.json" className={styles.file} onChange={onPick} />
+            <input type="file" accept="application/json,.json" className={styles.file} onChange={onPick} />
           </label>
         </div>
         {importError && <p role="alert" className={styles.error}>That file isn't a Times Table Rocket save</p>}
