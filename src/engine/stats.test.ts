@@ -9,8 +9,12 @@ describe('active seconds', () => {
   it('caps at 60', () => {
     expect(addActiveSeconds({}, T, 90)).toEqual({ [T]: 60 });
   });
-  it('accumulates up to the cap', () => {
-    expect(addActiveSeconds({ [T]: 50 }, T, 30)).toEqual({ [T]: 60 });
+  it('cap is per call, not per day', () => {
+    expect(addActiveSeconds(addActiveSeconds({}, T, 50), T, 50)).toEqual({ [T]: 100 });
+    expect(addActiveSeconds({ [T]: 50 }, T, 90)).toEqual({ [T]: 110 });
+  });
+  it('accumulates', () => {
+    expect(addActiveSeconds({ [T]: 50 }, T, 30)).toEqual({ [T]: 80 });
     expect(addActiveSeconds({ [T]: 10 }, T, 20)).toEqual({ [T]: 30 });
   });
   it('prunes entries older than 60 days', () => {
