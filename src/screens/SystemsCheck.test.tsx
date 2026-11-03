@@ -36,12 +36,14 @@ describe('SystemsCheck', () => {
     for (let i = 0; i < 24; i++) {
       await enter(currentAnswer() + 1); // always wrong
       expect(screen.queryByText(/repair/i)).toBeNull();
+      expect(screen.getByText('logged!')).toBeInTheDocument();
       if (i < 23) {
-        expect(screen.getByText('logged!')).toBeInTheDocument();
         act(() => { vi.advanceTimersByTime(1000); });
         expect(screen.getByText(`${i + 2} / 24`)).toBeInTheDocument();
       }
     }
+    expect(dispatch.mock.calls.filter((c) => c[0].type === 'finishPlacement')).toHaveLength(0);
+    act(() => { vi.advanceTimersByTime(1000); });
     const answers = dispatch.mock.calls.filter((c) => c[0].type === 'answer');
     expect(answers).toHaveLength(24);
     expect(answers[0]![0].mode).toBe('placement');

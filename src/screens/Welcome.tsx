@@ -1,16 +1,18 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useGame } from '../state/GameContext';
 import styles from './Welcome.module.css';
 
 export function Welcome() {
   const { dispatch } = useGame();
   const [name, setName] = useState('');
+  const submitted = useRef(false);
   const trimmed = name.trim();
   const valid = trimmed.length >= 1 && trimmed.length <= 16;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!valid) return;
+    if (!valid || submitted.current) return;
+    submitted.current = true;
     dispatch({ type: 'createCaptain', name: trimmed, nowIso: new Date().toISOString() });
   };
 

@@ -36,13 +36,14 @@ export function SystemsCheck() {
       mode: 'placement',
       activeSeconds,
     });
-    if (index + 1 >= questions.length) {
-      dispatch({ type: 'finishPlacement' });
-      return;
-    }
+    const last = index + 1 >= questions.length;
     setLogged(true);
     timer.current = setTimeout(() => {
       timer.current = null;
+      if (last) {
+        dispatch({ type: 'finishPlacement' });
+        return;
+      }
       setLogged(false);
       setIndex((i) => i + 1);
     }, LOGGED_MS);
