@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
 import { PLANETS } from '../engine/facts';
@@ -49,6 +49,19 @@ export function GalaxyMap() {
     return q;
   });
 
+  const okRef = useRef<HTMLButtonElement>(null);
+  const hasOverlay = queue.length > 0;
+  const currentKind = queue[0]?.kind;
+  useEffect(() => {
+    if (!hasOverlay) return;
+    okRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setQueue((q) => q.slice(1));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [hasOverlay, currentKind]);
+
   useEffect(() => {
     // Mark every open planet as celebrated so a placement result never replays them.
     for (const p of unmarked) dispatch({ type: 'markCelebrated', planet: p });
@@ -81,7 +94,8 @@ export function GalaxyMap() {
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'starMap' })}>Star Map</button>
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'hangar' })}>Hangar</button>
         <button type="button" className={styles.nb} aria-pressed={save.settings.soundOn} onClick={() => dispatch({ type: 'toggleSound' })}>
-          {`Sound ${save.settings.soundOn ? 'on' : 'off'}`}
+          <span aria-hidden="true">{save.settings.soundOn ? '🔊 ' : '🔇 '}</span>
+          <span className={styles.soundLabel}>Sound</span>
         </button>
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'parentGate' })}>Grown-ups</button>
       </nav>
@@ -126,7 +140,7 @@ export function GalaxyMap() {
               {current.kind === 'planet' ? `New planet detected: ${PLANETS[current.planet - 1]!.name}!` : 'Galaxy Master'}
             </h2>
             {current.kind === 'galaxyMaster' && <p>You know all 45 star facts. Amazing, Captain!</p>}
-            <button type="button" className={styles.primary} autoFocus onClick={() => setQueue((q) => q.slice(1))}>OK</button>
+            <button type="button" className={styles.primary} ref={okRef} onClick={() => setQueue((q) => q.slice(1))}>OK</button>
           </div>
         </div>
       )}
