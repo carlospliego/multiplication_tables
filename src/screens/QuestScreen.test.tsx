@@ -34,10 +34,10 @@ describe('QuestScreen', () => {
     await answer(12); skip();
     await answer(20); skip();
     expect(p.onAnswer).toHaveBeenCalledTimes(3);
-    const secs = p.onAnswer.mock.calls[0][2];
+    const secs = p.onAnswer.mock.calls[0]![2];
     expect(Number.isFinite(secs) && secs >= 0).toBe(true);
     expect(p.onComplete).toHaveBeenCalledTimes(1);
-    expect(p.onComplete.mock.calls[0][0].answered).toBe(3);
+    expect(p.onComplete.mock.calls[0]![0].answered).toBe(3);
   });
 
   it('shows repair after a wrong answer, then re-asks the fact', async () => {
@@ -52,7 +52,7 @@ describe('QuestScreen', () => {
     expect(screen.getByText('2 × 3')).toBeInTheDocument();
     await answer(6); skip();
     expect(p.onAnswer).toHaveBeenCalledTimes(4);
-    expect(p.onComplete.mock.calls[0][0].answered).toBe(4);
+    expect(p.onComplete.mock.calls[0]![0].answered).toBe(4);
   });
 
   it('shows discovery before the question, only once', async () => {
