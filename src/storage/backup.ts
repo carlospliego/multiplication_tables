@@ -35,5 +35,6 @@ export function downloadSave(save: SaveData, today: Day): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // Safari may still be reading the blob URL right after click(); revoke later.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

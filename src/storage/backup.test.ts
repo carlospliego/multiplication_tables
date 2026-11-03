@@ -53,7 +53,8 @@ describe('serializeSave / parseImport', () => {
 });
 
 describe('downloadSave', () => {
-  it('downloads the serialized save under the export filename and revokes the URL', () => {
+  it('downloads the serialized save under the export filename and revokes the URL after a delay', () => {
+    vi.useFakeTimers();
     const s = createFreshSave('Leo M!', ISO);
     const createObjectURL = vi.fn<(blob: Blob) => string>(() => 'blob:fake-url');
     const revokeObjectURL = vi.fn();
@@ -77,9 +78,14 @@ describe('downloadSave', () => {
       download: 'times-table-rocket-leo-m-2026-11-02.json',
       connected: true,
     });
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:fake-url');
     expect(document.querySelectorAll('a[download]')).toHaveLength(0);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(999);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:fake-url');
 
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 });
