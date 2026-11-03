@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { afterEach, describe, it, expect, vi } from 'vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NumberPad } from './NumberPad';
 
@@ -29,7 +29,6 @@ function Harness(props: {
   );
 }
 
-afterEach(cleanup);
 
 const val = () => screen.getByTestId('value').textContent;
 

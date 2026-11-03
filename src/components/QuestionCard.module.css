@@ -1,0 +1,29 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  animation: enter 400ms ease-out both;
+}
+.question {
+  margin: 0;
+  font-size: clamp(64px, 12vmin, 112px);
+  line-height: 1.1;
+}
+.answer {
+  min-width: 3ch;
+  min-height: 1.2em;
+  text-align: center;
+  font-size: clamp(40px, 7vmin, 64px);
+  font-weight: 700;
+  border-bottom: 4px solid currentColor;
+}
+@keyframes enter {
+  from { opacity: 0; transform: translateY(24px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: fade 200ms ease-out both; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+}
