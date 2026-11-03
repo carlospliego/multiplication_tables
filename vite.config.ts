@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => ({
           VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+            workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'] },
             manifest: {
               name: 'Times Table Rocket',
               short_name: 'TT Rocket',
