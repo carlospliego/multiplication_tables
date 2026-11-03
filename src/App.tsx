@@ -5,6 +5,7 @@ import { GameProvider, useGame } from './state/GameContext';
 import { FreeFlight } from './screens/FreeFlight';
 import { GalaxyMap } from './screens/GalaxyMap';
 import { Hangar } from './screens/Hangar';
+import { ParentDashboard } from './screens/ParentDashboard';
 import { MissionScreen } from './screens/MissionScreen';
 import { ParentGate } from './screens/ParentGate';
 import { StarMap } from './screens/StarMap';
@@ -54,8 +55,9 @@ function Screens() {
       return <Hangar />;
     case 'parentGate':
       return <ParentGateRoute />;
+    case 'parent':
+      return <ParentDashboard />;
     default:
-      // map, plus screens that arrive in later tasks (parent)
       return <GalaxyMap />;
   }
 }
