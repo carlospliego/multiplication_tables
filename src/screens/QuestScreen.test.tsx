@@ -87,4 +87,27 @@ describe('QuestScreen', () => {
     skip();
     expect(screen.queryByText('Great!')).toBeNull();
   });
+
+  it('last question wrong: repair, re-ask, then onComplete exactly once with full fuel', async () => {
+    const p = setup([mk(2, 3)]);
+    await answer(7);
+    await answer(6);
+    expect(p.onComplete).not.toHaveBeenCalled();
+    expect(screen.getByText('2 × 3')).toBeInTheDocument();
+    await answer(6); skip();
+    expect(p.onComplete).toHaveBeenCalledTimes(1);
+    expect(p.onComplete.mock.calls[0]![0].answered).toBe(2);
+    expect(screen.getByRole('meter').getAttribute('aria-valuenow')).toBe('100');
+  });
+
+  it('onComplete reports the lightning count (fast correct only)', async () => {
+    const p = setup([mk(2, 3), mk(3, 4)]);
+    await answer(6); skip();
+    await act(async () => { vi.advanceTimersByTime(5000); });
+    await answer(12); skip();
+    expect(p.onComplete).toHaveBeenCalledTimes(1);
+    const lightning = p.onComplete.mock.calls[0]![0].lightning;
+    expect(lightning).toBeGreaterThanOrEqual(1);
+    expect(lightning).toBeLessThanOrEqual(2);
+  });
 });
