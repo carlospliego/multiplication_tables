@@ -1,0 +1,18 @@
+.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; min-height: 100vh; overflow-x: hidden; }
+.screen > *:not(:first-child) { position: relative; }
+.title { margin: 0; font-size: clamp(1.8rem, 6vmin, 2.8rem); }
+.layout { display: flex; flex-direction: column; align-items: center; gap: 16px; width: min(100%, 960px); }
+.rocketBox { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 16px 12px; border-radius: var(--radius); background: var(--space-panel); border: 3px solid var(--neon-cyan); max-width: 100%; box-sizing: border-box; }
+.note { margin: 0; text-align: center; font-size: 1rem; color: var(--ink-dim); max-width: 280px; }
+.crewBox { width: 100%; }
+.crewTitle { margin: 0 0 8px; text-align: center; font-size: 1.4rem; color: var(--neon-yellow); }
+.crew { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.slot { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 16px; background: rgba(30, 39, 102, 0.7); min-width: 0; }
+.slot[data-earned='false'] { opacity: 0.85; }
+.caption { font-size: 0.95rem; font-weight: 700; text-align: center; overflow-wrap: anywhere; }
+.back { min-height: 56px; padding: 0 32px; font: inherit; font-size: 1.3rem; font-weight: 800; border-radius: 14px; border: 0; background: var(--neon-lime); color: var(--space-bg); cursor: pointer; }
+@media (min-width: 700px) and (orientation: landscape) {
+  .layout { flex-direction: row; align-items: flex-start; justify-content: center; }
+  .crewBox { flex: 1; }
+  .crew { grid-template-columns: repeat(5, 1fr); }
+}
