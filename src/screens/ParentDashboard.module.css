@@ -21,3 +21,13 @@
 .fill { display: block; height: 100%; background: var(--neon-cyan); }
 .min { text-align: right; font-weight: 700; }
 .back { min-height: 56px; padding: 0 32px; font: inherit; font-size: 1.3rem; font-weight: 800; border-radius: 14px; border: 0; background: var(--neon-lime); color: var(--space-bg); cursor: pointer; }
+.note { margin: 0 0 10px; text-align: center; color: var(--ink-dim); }
+.row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.action, .danger { min-height: 48px; padding: 0 20px; font: inherit; font-weight: 800; border-radius: 12px; border: 0; background: var(--neon-cyan); color: var(--space-bg); cursor: pointer; }
+.danger { background: var(--neon-yellow); }
+.danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.fileLabel { display: flex; flex-direction: column; gap: 6px; align-items: center; font-weight: 700; margin-bottom: 8px; }
+.file { max-width: 100%; font: inherit; }
+.input { min-height: 44px; font: inherit; padding: 0 10px; border-radius: 10px; }
+.error { margin: 8px 0 0; text-align: center; color: var(--neon-yellow); font-weight: 800; }
+.confirm { margin-top: 10px; text-align: center; }

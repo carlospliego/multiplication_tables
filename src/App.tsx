@@ -62,9 +62,20 @@ function Screens() {
   }
 }
 
+function StorageBanner() {
+  const { state } = useGame();
+  if (state.storageOk) return null;
+  return (
+    <div role="status" className="storage-banner">
+      Progress can't be saved on this device.
+    </div>
+  );
+}
+
 export function App() {
   return (
     <GameProvider>
+      <StorageBanner />
       <Screens />
     </GameProvider>
   );
