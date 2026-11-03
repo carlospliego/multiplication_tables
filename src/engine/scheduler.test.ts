@@ -114,6 +114,24 @@ describe('buildQuest', () => {
   });
 });
 
+describe('buildQuest small pools', () => {
+  it('2 introduced facts alternate: length 15, never back-to-back', () => {
+    const f = makeFacts({ '1x1': due(2), '1x2': due(3) });
+    for (let seed = 1; seed <= 300; seed++) {
+      const qs = buildQuest(f, { today: T, allowNew: false }, createRng(seed));
+      expect(qs).toHaveLength(15);
+      for (let i = 1; i < qs.length; i++) expect(qs[i]!.factId).not.toBe(qs[i - 1]!.factId);
+    }
+  });
+
+  it('1 introduced fact yields a single question', () => {
+    const f = makeFacts({ '1x1': due(2) });
+    for (let seed = 1; seed <= 20; seed++) {
+      expect(buildQuest(f, { today: T, allowNew: false }, createRng(seed))).toHaveLength(1);
+    }
+  });
+});
+
 describe('buildWarmup', () => {
   it('returns 5 questions, none discovery', () => {
     const f = makeFacts(planets([1, 2], due(2)));

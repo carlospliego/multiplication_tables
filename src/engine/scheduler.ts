@@ -2,7 +2,7 @@ import { compareDays } from './dates';
 import { makeQuestion, PLANETS } from './facts';
 import { isDue } from './levels';
 import { frontierPlanet } from './progress';
-import { shuffle } from './rng';
+import { pick, shuffle } from './rng';
 import type { Day, FactId, Facts, Question, Rng } from './types';
 
 export const QUEST_SIZE = 15;
@@ -78,44 +78,46 @@ function chooseBase(facts: Facts, today: Day, slots: number, rng: Rng): FactId[]
   return chosen;
 }
 
-interface Item {
-  q: Question;
-  pinned: boolean;
-}
-
+/**
+ * Lays out the quest: pinned slots (discoveries at 0/2/4, each re-ask 3 positions later) first,
+ * then the remaining slots are filled greedily with the fact that has the most copies left and
+ * differs from both neighbours (random tie-break). If a slot cannot be filled without a
+ * back-to-back repeat (e.g. a single distinct fact), the surplus is dropped.
+ */
 function arrange(base: Question[], newIds: FactId[], rng: Rng): Question[] {
-  const items: Item[] = shuffle(base, rng).map((q) => ({ q, pinned: false }));
-  const disc: Item[] = newIds.map((id) => ({ q: makeQuestion(id, rng, 'discovery'), pinned: true }));
-  disc.forEach((d, i) => items.splice(Math.min(DISCOVERY_SLOTS[i]!, items.length), 0, d));
+  type Slot = Question | null;
+  const slots: Slot[] = base.map(() => null);
+  const disc = newIds.map((id) => makeQuestion(id, rng, 'discovery'));
+  disc.forEach((d, i) => slots.splice(Math.min(DISCOVERY_SLOTS[i]!, slots.length), 0, d));
   for (const d of disc) {
-    const at = items.indexOf(d) + REASK_GAP;
-    items.splice(Math.min(at, items.length), 0, { q: makeQuestion(d.q.factId, rng, 'normal'), pinned: true });
+    const at = slots.indexOf(d) + REASK_GAP;
+    slots.splice(Math.min(at, slots.length), 0, makeQuestion(d.factId, rng, 'normal'));
   }
 
-  // Repair adjacency by swapping with a later unpinned item.
-  for (let i = 1; i < items.length; i++) {
-    const cur = items[i]!;
-    if (cur.pinned || cur.q.factId !== items[i - 1]!.q.factId) continue;
-    const next = items[i + 1]?.q.factId;
-    for (let j = i + 1; j < items.length; j++) {
-      const cand = items[j]!;
-      if (cand.pinned) continue;
-      const cf = cand.q.factId;
-      if (cf === cur.q.factId || cf === items[i - 1]!.q.factId || cf === next) continue;
-      if (items[j - 1]!.q.factId === cur.q.factId && j - 1 !== i) continue;
-      if (items[j + 1]?.q.factId === cur.q.factId) continue;
-      items[i] = cand;
-      items[j] = cur;
-      break;
+  const pool = new Map<FactId, Question[]>();
+  for (const q of base) pool.set(q.factId, [...(pool.get(q.factId) ?? []), q]);
+
+  const out: Question[] = [];
+  const last = (): FactId | undefined => out[out.length - 1]?.factId;
+  slots.forEach((slot, i) => {
+    if (slot) {
+      if (slot.factId !== last()) out.push(slot);
+      return;
     }
-  }
-  return items.map((it) => it.q);
-}
-
-const MAX_ARRANGE_ATTEMPTS = 30;
-
-function hasAdjacentRepeat(qs: Question[]): boolean {
-  return qs.some((q, i) => i > 0 && q.factId === qs[i - 1]!.factId);
+    const nextPinned = slots[i + 1]?.factId;
+    const options = [...pool.entries()].filter(
+      ([id, qs]) => qs.length > 0 && id !== last() && id !== nextPinned,
+    );
+    if (options.length === 0) return; // surplus repeat dropped
+    const most = Math.max(...options.map(([, qs]) => qs.length));
+    const [id, qs] = pick(
+      options.filter(([, q]) => q.length === most),
+      rng,
+    );
+    out.push(qs.pop()!);
+    pool.set(id, qs);
+  });
+  return out;
 }
 
 export function buildQuest(facts: Facts, opts: BuildOptions, rng: Rng): Question[] {
@@ -123,12 +125,7 @@ export function buildQuest(facts: Facts, opts: BuildOptions, rng: Rng): Question
   const newIds = pickNewFacts(facts, opts.allowNew);
   const baseIds = chooseBase(facts, opts.today, size - 2 * newIds.length, rng);
   const base = baseIds.map((id) => makeQuestion(id, rng));
-  // Repeats of a tiny pool can defeat the single repair pass; retry the shuffle a few times.
-  let best = arrange(base, newIds, rng);
-  for (let attempt = 0; attempt < MAX_ARRANGE_ATTEMPTS && hasAdjacentRepeat(best); attempt++) {
-    best = arrange(base, newIds, rng);
-  }
-  return best;
+  return arrange(base, newIds, rng);
 }
 
 export function buildWarmup(facts: Facts, today: Day, rng: Rng): Question[] {
