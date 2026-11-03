@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QuestionCard } from './QuestionCard';
@@ -6,6 +6,11 @@ import type { Question } from '../engine/types';
 
 const q = (a: number, b: number): Question => ({
   factId: `${a}x${b}`, a, b, answer: a * b, kind: 'normal',
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('QuestionCard', () => {
@@ -48,6 +53,7 @@ describe('QuestionCard', () => {
     await userEvent.click(screen.getByRole('button', { name: '2' }));
     await userEvent.click(screen.getByRole('button', { name: '1' }));
     fireEvent.keyDown(window, { key: 'Enter' });
+    expect(onAnswer).toHaveBeenCalledTimes(1);
     fireEvent.keyDown(window, { key: 'Enter' });
     fireEvent.click(screen.getByRole('button', { name: 'Go' }));
     expect(onAnswer).toHaveBeenCalledTimes(1);
@@ -63,7 +69,25 @@ describe('QuestionCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go' }));
     expect(onAnswer.mock.calls[0]![0].responseMs).toBeGreaterThanOrEqual(1000);
     expect(onAnswer.mock.calls[0]![0].interrupted).toBe(false);
-    vi.useRealTimers();
-    now.mockRestore();
+  });
+  it('early submit measures from mount, finite, not interrupted', () => {
+    const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
+    const onAnswer = vi.fn();
+    render(<QuestionCard question={q(3, 7)} onAnswer={onAnswer} />);
+    now.mockReturnValue(1300);
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+    expect(onAnswer.mock.calls[0]![0].responseMs).toBe(300);
+    expect(onAnswer.mock.calls[0]![0].interrupted).toBe(false);
+  });
+  it('ignores bubbled child animationend', () => {
+    const now = vi.spyOn(performance, 'now').mockReturnValue(0);
+    const onAnswer = vi.fn();
+    render(<QuestionCard question={q(3, 7)} onAnswer={onAnswer} />);
+    fireEvent.animationEnd(screen.getByText('3 × 7'));
+    now.mockReturnValue(500);
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+    expect(onAnswer.mock.calls[0]![0].responseMs).toBe(500);
   });
 });

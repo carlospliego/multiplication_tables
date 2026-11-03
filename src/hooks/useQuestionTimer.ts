@@ -6,22 +6,22 @@ export interface TimerResult {
 }
 
 /** Invisible timer: measures time from start() to stop(); never rendered. */
-export function useQuestionTimer(): { start(): void; stop(): TimerResult } {
+export function useQuestionTimer(): { start(at?: number): void; stop(): TimerResult } {
   const startedAt = useRef<number | null>(null);
   const interrupted = useRef(false);
 
   useEffect(() => {
     const onVisibility = () => {
-      if (document.hidden && startedAt.current !== null) interrupted.current = true;
+      if (document.hidden) interrupted.current = true;
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback((at?: number) => {
     if (startedAt.current !== null) return;
-    startedAt.current = performance.now();
-    interrupted.current = document.hidden === true;
+    startedAt.current = at ?? performance.now();
+    if (document.hidden === true) interrupted.current = true;
   }, []);
 
   const stop = useCallback((): TimerResult => {

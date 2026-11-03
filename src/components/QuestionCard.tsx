@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NumberPad } from './NumberPad';
 import { useQuestionTimer } from '../hooks/useQuestionTimer';
 import type { Question } from '../engine/types';
@@ -23,7 +23,13 @@ export function QuestionCard({ question, onAnswer }: { question: Question; onAns
   const [locked, setLocked] = useState(false);
   const lockedRef = useRef(false);
   const timer = useQuestionTimer();
-  const { start } = timer;
+  const mountedAt = useRef(performance.now());
+  const started = useRef(false);
+  const timerStart = timer.start;
+  const start = useCallback(() => {
+    started.current = true;
+    timerStart();
+  }, [timerStart]);
 
   useEffect(() => {
     if (prefersReducedMotion()) {
@@ -38,13 +44,17 @@ export function QuestionCard({ question, onAnswer }: { question: Question; onAns
     if (lockedRef.current || value.length === 0) return;
     lockedRef.current = true;
     setLocked(true);
+    // Submitted before the timer started: measure from card mount instead.
+    if (!started.current) timer.start(mountedAt.current);
     const { responseMs, interrupted } = timer.stop();
     const n = parseInt(value, 10);
     onAnswer({ value: n, correct: n === question.answer, responseMs, interrupted });
   };
 
   return (
-    <section className={styles.card} onAnimationEnd={timer.start} aria-label="Question">
+    <section className={styles.card} onAnimationEnd={(e) => {
+        if (e.target === e.currentTarget) start();
+      }} aria-label="Question">
       <h2 className={styles.question}>{`${question.a} × ${question.b}`}</h2>
       <output className={styles.answer} aria-live="polite" aria-label="Your answer">
         {value || '?'}
