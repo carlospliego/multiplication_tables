@@ -1,4 +1,4 @@
-.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; min-height: 100vh; overflow-x: hidden; }
+.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
 .screen > *:not(:first-child) { position: relative; }
 .title { margin: 0; font-size: clamp(1.8rem, 6vmin, 2.8rem); }
 .layout { display: flex; flex-direction: column; align-items: center; gap: 16px; width: min(100%, 960px); }

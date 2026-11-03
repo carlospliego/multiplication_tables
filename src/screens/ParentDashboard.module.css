@@ -1,4 +1,4 @@
-.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 12px 8px 24px; min-height: 100vh; overflow-x: hidden; box-sizing: border-box; }
+.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 12px 8px 24px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; box-sizing: border-box; }
 .screen > *:not(:first-child) { position: relative; }
 .title { margin: 0; font-size: clamp(1.8rem, 6vmin, 2.6rem); }
 .panel { width: min(100%, 560px); box-sizing: border-box; padding: 12px 4px; border-radius: 16px; background: var(--space-panel); }

@@ -85,3 +85,39 @@ test('parent gate opens dashboard', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Facts' })).toBeVisible();
   await expect(page.locator('section[aria-labelledby="grid-title"] button')).toHaveCount(81);
 });
+
+test('export, reset, then restore from the Welcome screen', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel("What's your name, Captain?").fill('Zoe');
+  await page.getByRole('button', { name: 'Launch!' }).click();
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('ttr.save') as string);
+    s.placementDone = true;
+    localStorage.setItem('ttr.save', JSON.stringify(s));
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Grown-ups' }).click();
+
+  const problem = (await page.getByTestId('gate-problem').textContent()) ?? '';
+  const m = /(\d+)\s*×\s*(\d+)/.exec(problem);
+  if (!m) throw new Error(`Unrecognised gate problem: ${problem}`);
+  const pad = page.getByRole('group', { name: 'Number pad' });
+  for (const d of String(Number(m[1]) * Number(m[2]))) await pad.getByRole('button', { name: d, exact: true }).click();
+  await pad.getByRole('button', { name: 'Go' }).click();
+  await expect(page.getByRole('heading', { name: 'Backup' })).toBeVisible();
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export progress' }).click(),
+  ]);
+  const backupPath = await download.path();
+
+  await page.getByLabel('Type RESET to erase all progress').fill('RESET');
+  await page.getByRole('button', { name: /^reset/i }).click();
+  await expect(page.getByLabel("What's your name, Captain?")).toBeVisible();
+
+  await page.getByLabel('Restore from a backup file').setInputFiles(backupPath);
+  await expect(page.getByText("Restore Captain Zoe's progress?")).toBeVisible();
+  await page.getByRole('button', { name: 'Restore', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Captain Zoe' })).toBeVisible();
+});

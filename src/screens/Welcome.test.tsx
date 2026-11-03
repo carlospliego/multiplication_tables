@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 const dispatch = vi.fn();
 vi.mock('../state/GameContext', () => ({ useGame: () => ({ state: null, dispatch }) }));
+import { createFreshSave } from '../storage/save';
 import { Welcome } from './Welcome';
 
 beforeEach(() => dispatch.mockClear());
@@ -48,5 +49,38 @@ describe('Welcome', () => {
   it('shows the Add to Home Screen tip', () => {
     render(<Welcome />);
     expect(screen.getByText(/Add to Home Screen/)).toBeInTheDocument();
+  });
+
+  describe('restore from a backup', () => {
+    const upload = async (text: string) => {
+      const user = userEvent.setup();
+      render(<Welcome />);
+      const file = new File([text], 'backup.json', { type: 'application/json' });
+      await user.upload(screen.getByLabelText(/restore from a backup file/i), file);
+      return user;
+    };
+
+    it('confirms by naming the captain, then imports', async () => {
+      const save = createFreshSave('Ada', '2026-11-02T10:00:00.000Z');
+      const user = await upload(JSON.stringify(save));
+      expect(await screen.findByText(/Restore Captain Ada/)).toBeInTheDocument();
+      expect(dispatch).not.toHaveBeenCalled();
+      await user.click(screen.getByRole('button', { name: 'Restore' }));
+      expect(dispatch).toHaveBeenCalledWith({ type: 'importSave', save });
+    });
+
+    it('cancel dispatches nothing', async () => {
+      const user = await upload(JSON.stringify(createFreshSave('Ada', '2026-11-02T10:00:00.000Z')));
+      await user.click(await screen.findByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('group', { name: 'Confirm restore' })).toBeNull();
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('shows a gentle error for an invalid file', async () => {
+      await upload('not json at all');
+      expect(await screen.findByRole('alert')).toHaveTextContent(/doesn't look like/i);
+      expect(screen.queryByRole('button', { name: 'Restore' })).toBeNull();
+      expect(dispatch).not.toHaveBeenCalled();
+    });
   });
 });

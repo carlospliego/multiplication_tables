@@ -16,7 +16,7 @@ afterEach(() => vi.useRealTimers());
 const facts = makeFacts(Object.fromEntries(ALL_FACT_IDS.map((id) => [id, { level: 1 }])));
 
 function setup() {
-  const p = { onAnswer: vi.fn(), onFinish: vi.fn() };
+  const p = { onAnswer: vi.fn(), onWon: vi.fn(), onExit: vi.fn(), onFinish: vi.fn() };
   render(<BossScreen planet={1} facts={facts} rng={createRng(5)} {...p} />);
   return p;
 }
@@ -39,6 +39,7 @@ describe('BossScreen', () => {
     expect(screen.getByLabelText('Shield 12 of 12')).toBeInTheDocument();
     for (let i = 0; i < 12; i++) await right();
     expect(screen.getByText('Planet freed!')).toBeInTheDocument();
+    expect(p.onWon).toHaveBeenCalledTimes(1);
     expect(p.onFinish).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(p.onFinish).toHaveBeenCalledTimes(1);
@@ -68,6 +69,13 @@ describe('BossScreen', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(p.onFinish).toHaveBeenCalledTimes(1);
     expect(p.onFinish).toHaveBeenCalledWith('retreated', expect.objectContaining({ answered: expect.any(Number) }));
+  });
+
+  it('does not report a win when retreating, and Map exits', async () => {
+    const p = setup();
+    await user.click(screen.getByRole('button', { name: '⟵ Map' }));
+    expect(p.onExit).toHaveBeenCalledTimes(1);
+    expect(p.onWon).not.toHaveBeenCalled();
   });
 
   it('has no timer element', () => {
