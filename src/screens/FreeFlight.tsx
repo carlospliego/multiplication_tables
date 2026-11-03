@@ -3,6 +3,7 @@ import { todayLocal } from '../engine/dates';
 import { createRng } from '../engine/rng';
 import { buildQuest } from '../engine/scheduler';
 import type { AnswerInput, FactId, Question } from '../engine/types';
+import { PLANETS } from '../engine/facts';
 import { useGame } from '../state/GameContext';
 import { QuestScreen } from './QuestScreen';
 
@@ -31,6 +32,7 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
       title="Free Flight"
       queue={queue}
       rng={rng}
+      parts={state.save!.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart)}
       onAnswer={onAnswer}
       onComplete={onNext}
       onExit={onExit}

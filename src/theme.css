@@ -29,12 +29,11 @@ body {
   *,
   *::before,
   *::after {
-    animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
   }
 }
 
-.app-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .app-shell > :last-child { flex: 1; }
 .storage-banner { flex: none; padding: 4px 8px; text-align: center; font-size: 0.85rem; font-weight: 700; background: var(--neon-yellow); color: var(--space-bg); }

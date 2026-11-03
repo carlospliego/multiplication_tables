@@ -15,10 +15,13 @@ export interface BossScreenProps {
   facts: Facts;
   rng: Rng;
   onAnswer(factId: FactId, ans: AnswerInput, activeSeconds: number): void;
+  /** Called the moment the boss is defeated, so the win is saved before the child taps Continue. */
+  onWon(): void;
+  onExit(): void;
   onFinish(result: 'won' | 'retreated', summary: { answered: number; lightning: number }): void;
 }
 
-export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScreenProps) {
+export function BossScreen({ planet, facts, rng, onAnswer, onWon, onExit, onFinish }: BossScreenProps) {
   const [run, setRun] = useState(() => startBoss(planet));
   const [q, setQ] = useState<Question>(() => nextBossQuestion(facts, startBoss(planet), rng));
   const [zapping, setZapping] = useState(false);
@@ -44,6 +47,7 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
     if (fast) tally.current.lightning += 1;
     const next = recordBossAnswer(run, q.factId, r.correct);
     setRun(next);
+    if (next.status === 'won') onWon();
     if (next.status === 'fighting') setQ(nextBossQuestion(facts, next, rng));
     if (r.correct) {
       play(fast ? 'lightning' : 'correct');
@@ -97,6 +101,9 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
 
   return (
     <div className={styles.screen}>
+      <header className={styles.header}>
+        <button type="button" className={styles.exit} onClick={onExit}>⟵ Map</button>
+      </header>
       <div className={styles.arena}>
         <div className={run.status === 'won' && !zapping ? styles.explode : undefined}>
           <Asteroid shield={run.shield} max={BOSS_SHIELD} label={`Shield ${run.shield} of ${BOSS_SHIELD}`} />

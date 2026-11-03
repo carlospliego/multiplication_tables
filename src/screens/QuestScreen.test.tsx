@@ -20,6 +20,8 @@ async function answer(n: number) {
   await user.click(screen.getByRole('button', { name: 'Go' }));
 }
 const skip = () => act(() => { vi.advanceTimersByTime(1000); });
+const wobble = () => act(() => { vi.advanceTimersByTime(700); });
+const launch = () => act(() => { vi.advanceTimersByTime(1100); });
 
 function setup(queue: Question[]) {
   const p = { onAnswer: vi.fn(), onComplete: vi.fn(), onExit: vi.fn() };
@@ -33,6 +35,9 @@ describe('QuestScreen', () => {
     await answer(6); skip();
     await answer(12); skip();
     await answer(20); skip();
+    expect(p.onComplete).not.toHaveBeenCalled();
+    expect(screen.getByRole('img', { name: /rocket/i }).getAttribute('class')).toMatch(/boost/);
+    launch();
     expect(p.onAnswer).toHaveBeenCalledTimes(3);
     const secs = p.onAnswer.mock.calls[0]![2];
     expect(Number.isFinite(secs) && secs >= 0).toBe(true);
@@ -43,6 +48,9 @@ describe('QuestScreen', () => {
   it('shows repair after a wrong answer, then re-asks the fact', async () => {
     const p = setup([mk(2, 3), mk(3, 4), mk(4, 5)]);
     await answer(7);
+    expect(screen.getByRole('img', { name: /rocket/i }).getAttribute('class')).toMatch(/wobble/);
+    expect(screen.queryByRole('region', { name: "Let's fix it" })).toBeNull();
+    wobble();
     expect(screen.getByRole('region', { name: "Let's fix it" })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Question' })).toBeNull();
     await answer(6);
@@ -50,7 +58,7 @@ describe('QuestScreen', () => {
     await answer(20); skip();
     expect(p.onComplete).not.toHaveBeenCalled();
     expect(screen.getByText('2 × 3')).toBeInTheDocument();
-    await answer(6); skip();
+    await answer(6); skip(); launch();
     expect(p.onAnswer).toHaveBeenCalledTimes(4);
     expect(p.onComplete.mock.calls[0]![0].answered).toBe(4);
   });
@@ -61,7 +69,7 @@ describe('QuestScreen', () => {
     expect(screen.queryByRole('region', { name: 'Question' })).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Got it!' }));
     expect(screen.getByText('2 × 3')).toBeInTheDocument();
-    await answer(7);
+    await answer(7); wobble();
     await answer(6);
     expect(screen.queryByText('New Discovery!')).toBeNull();
   });
@@ -76,7 +84,7 @@ describe('QuestScreen', () => {
     setup([mk(2, 3), mk(3, 4), mk(4, 5)]);
     await answer(6); skip();
     const before = screen.getByRole('meter').getAttribute('aria-valuenow');
-    await answer(1);
+    await answer(1); wobble();
     expect(screen.getByRole('meter').getAttribute('aria-valuenow')).toBe(before);
   });
 
@@ -90,11 +98,11 @@ describe('QuestScreen', () => {
 
   it('last question wrong: repair, re-ask, then onComplete exactly once with full fuel', async () => {
     const p = setup([mk(2, 3)]);
-    await answer(7);
+    await answer(7); wobble();
     await answer(6);
     expect(p.onComplete).not.toHaveBeenCalled();
     expect(screen.getByText('2 × 3')).toBeInTheDocument();
-    await answer(6); skip();
+    await answer(6); skip(); launch();
     expect(p.onComplete).toHaveBeenCalledTimes(1);
     expect(p.onComplete.mock.calls[0]![0].answered).toBe(2);
     expect(screen.getByRole('meter').getAttribute('aria-valuenow')).toBe('100');
@@ -104,7 +112,7 @@ describe('QuestScreen', () => {
     const p = setup([mk(2, 3), mk(3, 4)]);
     await answer(6); skip();
     await act(async () => { vi.advanceTimersByTime(5000); });
-    await answer(12); skip();
+    await answer(12); skip(); launch();
     expect(p.onComplete).toHaveBeenCalledTimes(1);
     const lightning = p.onComplete.mock.calls[0]![0].lightning;
     expect(lightning).toBeGreaterThanOrEqual(1);

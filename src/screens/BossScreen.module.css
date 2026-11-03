@@ -1,4 +1,6 @@
 .screen { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 12px; }
+.header { align-self: flex-start; }
+.exit { min-height: 48px; padding: 0 16px; font-size: 1.1rem; border-radius: 12px; cursor: pointer; }
 .arena { position: relative; display: flex; flex-direction: column; align-items: center; }
 .laser { position: absolute; left: 50%; bottom: -40px; width: 6px; height: 120px; margin-left: -3px; border-radius: 3px; background: #ff4fd8; box-shadow: 0 0 12px #ff4fd8; transform-origin: bottom; animation: zap 400ms ease-out both; pointer-events: none; }
 @keyframes zap { from { transform: scaleY(0); opacity: 1; } 70% { transform: scaleY(1); opacity: 1; } to { transform: scaleY(1); opacity: 0; } }
@@ -10,3 +12,4 @@
 .endTitle { margin: 0; font-size: clamp(32px, 7vmin, 56px); }
 .endText { margin: 0; font-size: 1.3rem; max-width: 30ch; }
 .go { min-height: 56px; padding: 0 28px; font-size: 1.3rem; border-radius: 14px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .laser { animation: none; opacity: 0; } .explode { animation: bossFade 300ms ease-out both; } @keyframes bossFade { from { opacity: 1; } to { opacity: 0; } } }

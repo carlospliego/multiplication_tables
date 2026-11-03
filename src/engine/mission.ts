@@ -49,3 +49,11 @@ export function applyMissionComplete(streak: Streak, missionDay: Day): Streak {
   const current = last !== null && daysBetween(last, missionDay) === 1 ? streak.current + 1 : 1;
   return { current, best: Math.max(streak.best, current), lastMissionDay: missionDay };
 }
+
+/** The streak to show: the stored count only while it is still alive (last mission today or yesterday). */
+export function displayStreak(streak: Streak, today: Day): number {
+  const last = streak.lastMissionDay;
+  if (last === null) return 0;
+  const gap = daysBetween(last, today);
+  return gap === 0 || gap === 1 ? streak.current : 0;
+}

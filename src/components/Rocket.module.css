@@ -7,3 +7,4 @@
 @keyframes rocketBoost { 50% { transform: translateY(-10px) scale(1.04); } }
 @keyframes rocketWobble { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
 @keyframes rocketFlame { to { transform: scaleY(1.2); } }
+@media (prefers-reduced-motion: reduce) { .idle, .boost, .wobble, .flame { animation: none; } }

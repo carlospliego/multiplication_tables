@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { todayLocal } from '../engine/dates';
+import { PLANETS } from '../engine/facts';
 import { missionForToday } from '../engine/mission';
 import type { MissionStep } from '../engine/mission';
 import { createRng } from '../engine/rng';
@@ -37,6 +38,7 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
     [dispatch],
   );
+  const parts = state.save!.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart);
   const onComplete = useCallback(
     (summary: Summary) => {
       dispatch({ type: 'advanceMission', today: todayLocal(), summary });
@@ -50,6 +52,7 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
       title={TITLES[step] as string}
       queue={queue}
       rng={rng}
+      parts={parts}
       onAnswer={onAnswer}
       onComplete={onComplete}
       onExit={onExit}
@@ -79,11 +82,15 @@ function MissionBoss() {
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
     [dispatch],
   );
+  // Saved the moment the boss falls (idempotent), so closing the app before Continue keeps the win.
+  const onWon = useCallback(() => {
+    if (planet !== null) dispatch({ type: 'bossBeaten', planet });
+  }, [dispatch, planet]);
+  const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
   const onFinish = useCallback(
     (result: 'won' | 'retreated', summary: Summary) => {
       if (advanced.current || planet === null) return;
       advanced.current = true;
-      if (result === 'won') dispatch({ type: 'bossBeaten', planet });
       dispatch({
         type: 'advanceMission',
         today: todayLocal(),
@@ -95,7 +102,7 @@ function MissionBoss() {
   );
 
   if (planet === null) return null;
-  return <BossScreen key={`boss-${planet}`} planet={planet} facts={facts} rng={rng} onAnswer={onAnswer} onFinish={onFinish} />;
+  return <BossScreen key={`boss-${planet}`} planet={planet} facts={facts} rng={rng} onAnswer={onAnswer} onWon={onWon} onExit={onExit} onFinish={onFinish} />;
 }
 
 export function MissionScreen() {

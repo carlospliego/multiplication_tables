@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDays } from './dates';
-import { advanceMission, applyMissionComplete, isMissionDoneToday, missionForToday } from './mission';
+import { advanceMission, applyMissionComplete, displayStreak, isMissionDoneToday, missionForToday } from './mission';
 
 const T = '2026-11-02';
 
@@ -54,5 +54,20 @@ describe('streak', () => {
   it('earlier day than lastMissionDay returns input unchanged', () => {
     const s = { current: 3, best: 5, lastMissionDay: '2026-11-05' };
     expect(applyMissionComplete(s, '2026-11-02')).toBe(s);
+  });
+
+  describe('displayStreak', () => {
+    const s = { current: 3, best: 5, lastMissionDay: T };
+    it('shows the count when the last mission was today or yesterday', () => {
+      expect(displayStreak(s, T)).toBe(3);
+      expect(displayStreak(s, addDays(T, 1))).toBe(3);
+    });
+    it('is 0 after a missed day', () => {
+      expect(displayStreak(s, addDays(T, 2))).toBe(0);
+      expect(displayStreak(s, addDays(T, 9))).toBe(0);
+    });
+    it('is 0 when no mission was ever finished', () => {
+      expect(displayStreak({ current: 0, best: 0, lastMissionDay: null }, T)).toBe(0);
+    });
   });
 });

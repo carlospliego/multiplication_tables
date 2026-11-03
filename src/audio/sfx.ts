@@ -12,7 +12,7 @@ function needsResume(c: Ctx): boolean {
   return st === 'suspended' || st === 'interrupted';
 }
 
-/** Returns true once a context exists (false if creation failed or is unsupported). */
+/** Returns true once the context is running (false if unsupported, failed, or still suspended). */
 export function unlockAudio(): boolean {
   try {
     if (!ctx) {
@@ -22,7 +22,7 @@ export function unlockAudio(): boolean {
       ctx = new C();
     }
     if (needsResume(ctx)) void Promise.resolve(ctx.resume()).catch(() => undefined);
-    return true;
+    return !needsResume(ctx);
   } catch {
     ctx = null;
     return false;

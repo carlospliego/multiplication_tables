@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
 import { PLANETS } from '../engine/facts';
-import { isMissionDoneToday } from '../engine/mission';
+import { displayStreak, isMissionDoneToday } from '../engine/mission';
 import { availableBoss, frontierPlanet, masteredCount, openPlanets } from '../engine/progress';
 import type { PlanetId } from '../engine/types';
 import { Planet } from '../components/Planet';
@@ -88,7 +88,7 @@ export function GalaxyMap() {
           <h1 className={styles.title}>{`Captain ${save.captainName}`}</h1>
           <p className={styles.sub}>{`${mastered} of 45 facts mastered`}</p>
         </div>
-        <StreakFlame days={save.streak.current} size={56} />
+        <StreakFlame days={displayStreak(save.streak, todayLocal())} size={56} />
       </header>
       <nav className={styles.nav} aria-label="Menu">
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'starMap' })}>Star Map</button>

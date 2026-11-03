@@ -6,3 +6,12 @@
 .launch { min-height: 56px; padding: 0 32px; font-size: 1.4rem; font-weight: 800; border-radius: 14px; cursor: pointer; }
 .launch:disabled { opacity: 0.5; cursor: not-allowed; }
 .tip { margin: 0; font-size: 1rem; text-align: center; opacity: 0.85; }
+
+.restore { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.restoreLabel { display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 12px; border: 2px solid var(--ink-dim); color: var(--ink-dim); font-size: 1.1rem; cursor: pointer; }
+.file { max-width: 220px; margin-left: 12px; font-size: 0.9rem; }
+.error { margin: 0; color: var(--danger); font-size: 1.1rem; text-align: center; }
+.confirm { display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 1.2rem; text-align: center; }
+.confirm p { margin: 0; }
+.row { display: flex; gap: 12px; }
+.cancel { min-height: 56px; padding: 0 28px; font-size: 1.2rem; border-radius: 14px; cursor: pointer; }

@@ -29,10 +29,11 @@ vi.mock('./QuestScreen', () => ({
 }));
 
 vi.mock('./BossScreen', () => ({
-  BossScreen: (p: { planet: number; onFinish(r: 'won' | 'retreated', s: { answered: number; lightning: number }): void }) => (
+  BossScreen: (p: { planet: number; onWon(): void; onFinish(r: 'won' | 'retreated', s: { answered: number; lightning: number }): void }) => (
     <div>
       <h1>Boss {p.planet}</h1>
-      <button onClick={() => p.onFinish('won', { answered: 4, lightning: 2 })}>win</button>
+      <button onClick={p.onWon}>defeat</button>
+      <button onClick={() => { p.onWon(); p.onFinish('won', { answered: 4, lightning: 2 }); }}>win</button>
       <button onClick={() => p.onFinish('retreated', { answered: 3, lightning: 1 })}>retreat</button>
     </div>
   ),
@@ -122,6 +123,17 @@ describe('MissionScreen', () => {
     await user.click(screen.getByText('retreat'));
     expect(latest.save!.mission!.tally).toEqual({ answered: 5 + 15 + 15 + 15 + 3, lightning: 1, bossWon: null });
     expect(screen.getByText(/53 questions answered/)).toBeInTheDocument();
+  });
+
+  it('saves the boss win as soon as it is defeated, before Continue', async () => {
+    const user = userEvent.setup();
+    const { s, writes } = fakeStorage(baseSave({ mission: { day: todayLocal(), step: 'boss' } }));
+    const view = render(<GameProvider storage={s}><Probe /><MissionScreen /></GameProvider>);
+    await user.click(screen.getByText('defeat'));
+    view.unmount();
+    const saved = writes[writes.length - 1]!;
+    expect(saved.bossesBeaten).toEqual([1]);
+    expect(saved.mission!.step).toBe('boss');
   });
 
   it('retreating from the boss advances without marking it beaten', async () => {

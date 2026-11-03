@@ -26,17 +26,15 @@ function Screens() {
     setMuted(!soundOn);
   }, [soundOn]);
   useEffect(() => {
+    // WebKit only treats pointerup/touchend/click as activations; keep listening until the context runs.
+    const events = ['pointerup', 'touchend', 'click', 'keydown'] as const;
     const unlock = () => {
-      // Keep listening until a context was actually created, so a failed attempt can retry.
       if (!unlockAudio()) return;
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('keydown', unlock);
+      for (const e of events) window.removeEventListener(e, unlock);
     };
-    window.addEventListener('pointerdown', unlock);
-    window.addEventListener('keydown', unlock);
+    for (const e of events) window.addEventListener(e, unlock);
     return () => {
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('keydown', unlock);
+      for (const e of events) window.removeEventListener(e, unlock);
     };
   }, []);
   if (!state.save) return <Welcome />;

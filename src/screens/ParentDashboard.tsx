@@ -3,6 +3,7 @@ import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
 import { parseFact } from '../engine/facts';
+import { displayStreak } from '../engine/mission';
 import { masteredCount } from '../engine/progress';
 import { factStats, lastNDays } from '../engine/stats';
 import type { FactId } from '../engine/types';
@@ -64,7 +65,7 @@ export function ParentDashboard() {
         <h2 id="summary-title" className={styles.h2}>Summary</h2>
         <p className={styles.stars}>{`★ ${masteredCount(save.facts)} / 45`}</p>
         <dl className={styles.stats}>
-          <div><dt>Current streak</dt><dd>{save.streak.current}</dd></div>
+          <div><dt>Current streak</dt><dd>{displayStreak(save.streak, today)}</dd></div>
           <div><dt>Best streak</dt><dd>{save.streak.best}</dd></div>
           <div><dt>Planets freed</dt><dd>{save.bossesBeaten.length}</dd></div>
         </dl>
