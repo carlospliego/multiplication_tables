@@ -26,8 +26,10 @@ export function isQuestDone(run: QuestRun): boolean {
 }
 
 export function fuelFraction(run: QuestRun): number {
-  if (run.queue.length === 0) return 0;
-  return Math.min(1, Math.max(0, run.fuel / run.queue.length));
+  const remaining = Math.max(0, run.queue.length - run.index);
+  const denom = run.fuel + remaining;
+  if (denom === 0) return 1;
+  return Math.min(1, Math.max(0, run.fuel / denom));
 }
 
 export function recordQuestResult(run: QuestRun, correct: boolean, fast: boolean, rng: Rng): QuestRun {

@@ -1,0 +1,8 @@
+.screen { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px; }
+.title { margin: 0; font-size: clamp(2rem, 7vmin, 3.5rem); }
+.form { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.label { font-size: 1.4rem; }
+.input { font-size: 1.6rem; min-height: 56px; padding: 0 16px; border-radius: 12px; text-align: center; max-width: 100%; }
+.launch { min-height: 56px; padding: 0 32px; font-size: 1.4rem; font-weight: 800; border-radius: 14px; cursor: pointer; }
+.launch:disabled { opacity: 0.5; cursor: not-allowed; }
+.tip { margin: 0; font-size: 1rem; text-align: center; opacity: 0.85; }

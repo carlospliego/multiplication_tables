@@ -9,6 +9,17 @@ const ids = ['1x1', '1x2', '1x3', '1x4', '1x5', '1x6', '1x7', '1x8', '1x9', '2x2
 const mk = (n = 15) => ids.slice(0, n).map((id) => makeQuestion(id, createRng(1)));
 
 describe('questRun', () => {
+  it('fuelFraction: fresh run is 0; wrong never lowers it; full when done after re-asks', () => {
+    let r = startQuestRun(mk(5));
+    expect(fuelFraction(r)).toBe(0);
+    r = recordQuestResult(r, true, false, createRng(1));
+    const before = fuelFraction(r);
+    r = recordQuestResult(r, false, false, createRng(1));
+    expect(r.queue.length).toBe(6);
+    expect(fuelFraction(r)).toBeGreaterThanOrEqual(before);
+    while (!isQuestDone(r)) r = recordQuestResult(r, true, false, createRng(1));
+    expect(fuelFraction(r)).toBe(1);
+  });
   it('correct advances, adds fuel, lightning only when fast', () => {
     let r = startQuestRun(mk());
     r = recordQuestResult(r, true, false, createRng(1));

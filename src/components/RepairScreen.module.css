@@ -1,0 +1,17 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.fact { margin: 0; font-size: clamp(48px, 9vmin, 80px); font-weight: 700; }
+.tip { margin: 0; font-size: 1.5rem; max-width: 32ch; }
+.prompt { margin: 0; font-size: 1.25rem; }
+.answer {
+  min-width: 3ch;
+  font-size: clamp(40px, 7vmin, 64px);
+  font-weight: 700;
+  border-bottom: 4px solid currentColor;
+}

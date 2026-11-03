@@ -1,5 +1,34 @@
+import { GameProvider, useGame } from './state/GameContext';
+import { FreeFlight } from './screens/FreeFlight';
+import { GalaxyMap } from './screens/GalaxyMap';
+import { MissionScreen } from './screens/MissionScreen';
+import { SystemsCheck } from './screens/SystemsCheck';
+import { Welcome } from './screens/Welcome';
+
 export const GAME_TITLE = 'Times Table Rocket';
 
+function Screens() {
+  const { state } = useGame();
+  if (!state.save) return <Welcome />;
+  switch (state.screen) {
+    case 'welcome':
+      return <Welcome />;
+    case 'systemsCheck':
+      return <SystemsCheck />;
+    case 'mission':
+      return <MissionScreen />;
+    case 'freeFlight':
+      return <FreeFlight />;
+    default:
+      // map, plus screens that arrive in later tasks (starMap, hangar, parent*)
+      return <GalaxyMap />;
+  }
+}
+
 export function App() {
-  return <h1>{GAME_TITLE}</h1>;
+  return (
+    <GameProvider>
+      <Screens />
+    </GameProvider>
+  );
 }

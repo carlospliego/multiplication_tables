@@ -1,0 +1,17 @@
+.grid {
+  display: grid;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.dot {
+  width: clamp(14px, 3.5vmin, 28px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+/* Rows alternate colour AND shape (filled vs ringed) so colour is never the only signal. */
+.even { background: #ffd23f; }
+.odd { background: transparent; border: 4px solid #6ee7f9; box-sizing: border-box; }
+/* Visual grouping: a gap between the 5th and 6th columns (6th dot has the left margin). */
+.gapLeft { margin-left: 10px; }
