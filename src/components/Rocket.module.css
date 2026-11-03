@@ -1,0 +1,9 @@
+.rocket { display: block; overflow: visible; }
+.idle { animation: rocketBob 3s ease-in-out infinite; }
+.boost { animation: rocketBoost 0.5s ease-in-out infinite; }
+.wobble { animation: rocketWobble 0.6s ease-in-out 2; }
+.flame { transform-origin: 60px 130px; animation: rocketFlame 0.25s ease-in-out infinite alternate; }
+@keyframes rocketBob { 50% { transform: translateY(-6px); } }
+@keyframes rocketBoost { 50% { transform: translateY(-10px) scale(1.04); } }
+@keyframes rocketWobble { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+@keyframes rocketFlame { to { transform: scaleY(1.2); } }

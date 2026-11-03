@@ -1,0 +1,5 @@
+.planet { display: block; overflow: visible; }
+.pulse { transform-origin: 50px 50px; animation: planetPulse 1.6s ease-in-out infinite; }
+.frontier, .boss { filter: drop-shadow(0 0 8px rgba(53, 224, 255, 0.6)); }
+.boss { filter: drop-shadow(0 0 8px rgba(255, 92, 108, 0.7)); }
+@keyframes planetPulse { 50% { transform: scale(1.06); opacity: 0.7; } }

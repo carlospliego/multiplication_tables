@@ -1,0 +1,3 @@
+.asteroid { display: block; }
+.rock { transform-origin: 60px 60px; animation: asteroidSpin 12s linear infinite; }
+@keyframes asteroidSpin { to { transform: rotate(360deg); } }
