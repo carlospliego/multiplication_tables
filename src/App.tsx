@@ -3,6 +3,7 @@ import { FreeFlight } from './screens/FreeFlight';
 import { GalaxyMap } from './screens/GalaxyMap';
 import { Hangar } from './screens/Hangar';
 import { MissionScreen } from './screens/MissionScreen';
+import { StarMap } from './screens/StarMap';
 import { SystemsCheck } from './screens/SystemsCheck';
 import { Welcome } from './screens/Welcome';
 
@@ -20,10 +21,12 @@ function Screens() {
       return <MissionScreen />;
     case 'freeFlight':
       return <FreeFlight />;
+    case 'starMap':
+      return <StarMap />;
     case 'hangar':
       return <Hangar />;
     default:
-      // map, plus screens that arrive in later tasks (starMap, parent*)
+      // map, plus screens that arrive in later tasks (parent*)
       return <GalaxyMap />;
   }
 }

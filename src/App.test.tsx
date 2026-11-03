@@ -20,6 +20,7 @@ it('shows the Galaxy Map when placement is done', () => {
 
 it.each([
   ['Hangar', /crew/i],
+  ['Star Map', /stars lit/i],
 ])('renders the %s screen from the map', async (name, text) => {
   const save = { ...createFreshSave('Ada', '2026-11-02T10:00:00.000Z'), placementDone: true };
   localStorage.setItem(SAVE_KEY, JSON.stringify(save));
