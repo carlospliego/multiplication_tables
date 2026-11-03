@@ -46,6 +46,7 @@ export function NumberPad({
   useEffect(() => {
     if (!captureKeyboard) return;
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat || e.isComposing) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target as Element | null;
       const tag = t?.tagName;

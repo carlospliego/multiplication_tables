@@ -144,4 +144,13 @@ describe('NumberPad', () => {
     fireEvent.keyDown(window, { key: '1' });
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it('ignores repeated key events', () => {
+    const onSubmit = vi.fn();
+    render(<Harness initial="4" onSubmit={onSubmit} />);
+    fireEvent.keyDown(window, { key: 'Enter', repeat: true });
+    expect(onSubmit).not.toHaveBeenCalled();
+    fireEvent.keyDown(window, { key: 'Enter' });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
 });
