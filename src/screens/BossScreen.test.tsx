@@ -42,7 +42,7 @@ describe('BossScreen', () => {
     expect(p.onFinish).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(p.onFinish).toHaveBeenCalledTimes(1);
-    expect(p.onFinish).toHaveBeenCalledWith('won');
+    expect(p.onFinish).toHaveBeenCalledWith('won', { answered: 12, lightning: expect.any(Number) });
     expect(p.onAnswer).toHaveBeenCalledTimes(12);
     const secs = p.onAnswer.mock.calls[0]![2];
     expect(Number.isFinite(secs) && secs >= 0).toBe(true);
@@ -67,7 +67,7 @@ describe('BossScreen', () => {
     expect(screen.queryByText('Planet freed!')).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(p.onFinish).toHaveBeenCalledTimes(1);
-    expect(p.onFinish).toHaveBeenCalledWith('retreated');
+    expect(p.onFinish).toHaveBeenCalledWith('retreated', expect.objectContaining({ answered: expect.any(Number) }));
   });
 
   it('has no timer element', () => {

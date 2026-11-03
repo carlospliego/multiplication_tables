@@ -27,8 +27,8 @@ describe('MissionComplete', () => {
     facts['1x1'] = { ...facts['1x1']!, level: 5, lastPromotedDay: todayLocal() };
     facts['1x2'] = { ...facts['1x2']!, level: 5, lastPromotedDay: todayLocal() };
     facts['1x3'] = { ...facts['1x3']!, level: 5, lastPromotedDay: '2020-01-01' };
-    setup({ facts, streak: { current: 4, best: 4, lastMissionDay: todayLocal() } });
-    render(<MissionComplete answered={37} lightning={9} bossWon={null} />);
+    setup({ facts, streak: { current: 4, best: 4, lastMissionDay: todayLocal() }, mission: { day: todayLocal(), step: 'complete', tally: { answered: 37, lightning: 9, bossWon: null } } });
+    render(<MissionComplete />);
     expect(screen.getByText(/mission complete/i)).toBeInTheDocument();
     expect(screen.getByText(/37/)).toBeInTheDocument();
     expect(screen.getByText(/⚡\s*9|9\s*⚡/)).toBeInTheDocument();
@@ -43,8 +43,8 @@ describe('MissionComplete', () => {
   it('singular star and boss reward reveal', () => {
     const facts = makeFacts();
     facts['1x1'] = { ...facts['1x1']!, level: 5, lastPromotedDay: todayLocal() };
-    setup({ facts });
-    render(<MissionComplete answered={5} lightning={0} bossWon={2} />);
+    setup({ facts, mission: { day: todayLocal(), step: 'complete', tally: { answered: 5, lightning: 0, bossWon: 2 } } });
+    render(<MissionComplete />);
     expect(screen.getByText(/1 new star\b/i)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(PLANETS[1]!.alienName))).toBeInTheDocument();
     expect(screen.getByText(new RegExp(PLANETS[1]!.shipPart, 'i'))).toBeInTheDocument();
@@ -54,5 +54,13 @@ describe('MissionComplete', () => {
     setup();
     render(<MissionComplete />);
     expect(screen.getByText(/0 new stars/i)).toBeInTheDocument();
+  });
+
+  it('lists planets open but not yet celebrated', () => {
+    const facts = makeFacts();
+    for (const id of PLANETS[0]!.factIds) facts[id] = { ...facts[id]!, level: 3 };
+    setup({ facts });
+    render(<MissionComplete />);
+    expect(screen.getByText(new RegExp(`New planet unlocked: ${PLANETS[1]!.name}`))).toBeInTheDocument();
   });
 });

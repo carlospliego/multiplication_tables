@@ -7,17 +7,25 @@ let muted = false;
 
 const PEAK = 0.12; // modest gain so it is never harsh on headphones
 
-export function unlockAudio(): void {
+function needsResume(c: Ctx): boolean {
+  const st = c.state as string;
+  return st === 'suspended' || st === 'interrupted';
+}
+
+/** Returns true once a context exists (false if creation failed or is unsupported). */
+export function unlockAudio(): boolean {
   try {
     if (!ctx) {
       const w = window as unknown as { AudioContext?: new () => Ctx; webkitAudioContext?: new () => Ctx };
       const C = w.AudioContext ?? w.webkitAudioContext;
-      if (!C) return;
+      if (!C) return false;
       ctx = new C();
     }
-    if (ctx.state === 'suspended') void Promise.resolve(ctx.resume()).catch(() => undefined);
+    if (needsResume(ctx)) void Promise.resolve(ctx.resume()).catch(() => undefined);
+    return true;
   } catch {
     ctx = null;
+    return false;
   }
 }
 
@@ -89,7 +97,7 @@ const RECIPES: Record<Sfx, Tone[]> = {
 export function play(sfx: Sfx): void {
   try {
     if (muted || !ctx) return;
-    if (ctx.state === 'suspended') void Promise.resolve(ctx.resume()).catch(() => undefined);
+    if (needsResume(ctx)) void Promise.resolve(ctx.resume()).catch(() => undefined);
     for (const t of RECIPES[sfx]) tone(ctx, t);
   } catch {
     // audio must never break the game

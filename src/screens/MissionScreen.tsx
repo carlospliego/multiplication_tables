@@ -20,7 +20,7 @@ const TITLES: Partial<Record<MissionStep, string>> = {
 
 type Summary = { answered: number; lightning: number };
 
-function MissionQuest({ step, onSummary }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3'; onSummary(s: Summary): void }) {
+function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3' }) {
   const { state, dispatch } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
   // Built once per mount (the parent keys this component by step), from the latest facts.
@@ -39,10 +39,9 @@ function MissionQuest({ step, onSummary }: { step: 'warmup' | 'quest1' | 'quest2
   );
   const onComplete = useCallback(
     (summary: Summary) => {
-      onSummary(summary);
-      dispatch({ type: 'advanceMission', today: todayLocal() });
+      dispatch({ type: 'advanceMission', today: todayLocal(), summary });
     },
-    [dispatch, onSummary],
+    [dispatch],
   );
   const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
 
@@ -58,7 +57,7 @@ function MissionQuest({ step, onSummary }: { step: 'warmup' | 'quest1' | 'quest2
   );
 }
 
-function MissionBoss({ onWon }: { onWon(planet: PlanetId): void }) {
+function MissionBoss() {
   const { state, dispatch } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
   // Captured once when the step starts so later progress can't change the boss mid-fight.
@@ -81,16 +80,18 @@ function MissionBoss({ onWon }: { onWon(planet: PlanetId): void }) {
     [dispatch],
   );
   const onFinish = useCallback(
-    (result: 'won' | 'retreated') => {
+    (result: 'won' | 'retreated', summary: Summary) => {
       if (advanced.current || planet === null) return;
       advanced.current = true;
-      if (result === 'won') {
-        onWon(planet);
-        dispatch({ type: 'bossBeaten', planet });
-      }
-      dispatch({ type: 'advanceMission', today: todayLocal() });
+      if (result === 'won') dispatch({ type: 'bossBeaten', planet });
+      dispatch({
+        type: 'advanceMission',
+        today: todayLocal(),
+        summary,
+        ...(result === 'won' ? { bossWon: planet } : {}),
+      });
     },
-    [dispatch, planet, onWon],
+    [dispatch, planet],
   );
 
   if (planet === null) return null;
@@ -101,12 +102,6 @@ export function MissionScreen() {
   const { state, dispatch } = useGame();
   const today = todayLocal();
   const mission = missionForToday(state.save?.mission ?? null, today);
-  const [totals, setTotals] = useState<Summary>({ answered: 0, lightning: 0 });
-  const [bossWon, setBossWon] = useState<PlanetId | null>(null);
-  const addSummary = useCallback(
-    (s: Summary) => setTotals((t) => ({ answered: t.answered + s.answered, lightning: t.lightning + s.lightning })),
-    [],
-  );
   const needsStart = !state.save?.mission || state.save.mission.day !== today;
 
   useEffect(() => {
@@ -119,10 +114,10 @@ export function MissionScreen() {
     case 'quest1':
     case 'quest2':
     case 'quest3':
-      return <MissionQuest key={mission.step} step={mission.step} onSummary={addSummary} />;
+      return <MissionQuest key={mission.step} step={mission.step} />;
     case 'boss':
-      return <MissionBoss key="boss" onWon={setBossWon} />;
+      return <MissionBoss key="boss" />;
     case 'complete':
-      return <MissionComplete answered={totals.answered} lightning={totals.lightning} bossWon={bossWon} />;
+      return <MissionComplete />;
   }
 }

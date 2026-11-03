@@ -15,7 +15,7 @@ export interface BossScreenProps {
   facts: Facts;
   rng: Rng;
   onAnswer(factId: FactId, ans: AnswerInput, activeSeconds: number): void;
-  onFinish(result: 'won' | 'retreated'): void;
+  onFinish(result: 'won' | 'retreated', summary: { answered: number; lightning: number }): void;
 }
 
 export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScreenProps) {
@@ -25,6 +25,7 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
   const [repair, setRepair] = useState<Question | null>(null);
   const lastAt = useRef(performance.now());
   const finished = useRef(false);
+  const tally = useRef({ answered: 0, lightning: 0 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -38,11 +39,14 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
     const activeSeconds = Number.isFinite(raw) ? Math.max(0, raw) : 0;
     lastAt.current = now;
     onAnswer(q.factId, { correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted }, activeSeconds);
+    const fast = isFastAnswer({ correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted });
+    tally.current.answered += 1;
+    if (fast) tally.current.lightning += 1;
     const next = recordBossAnswer(run, q.factId, r.correct);
     setRun(next);
     if (next.status === 'fighting') setQ(nextBossQuestion(facts, next, rng));
     if (r.correct) {
-      play(isFastAnswer({ correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted }) ? 'lightning' : 'correct');
+      play(fast ? 'lightning' : 'correct');
       play('laser');
       if (next.status === 'won') play('explosion');
       setZapping(true);
@@ -59,7 +63,7 @@ export function BossScreen({ planet, facts, rng, onAnswer, onFinish }: BossScree
   const finish = () => {
     if (finished.current || run.status === 'fighting') return;
     finished.current = true;
-    onFinish(run.status);
+    onFinish(run.status, { ...tally.current });
   };
 
   const over = run.status !== 'fighting';

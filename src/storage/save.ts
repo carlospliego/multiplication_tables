@@ -126,6 +126,14 @@ export function validateSave(raw: unknown): SaveData | null {
     const m = raw.mission;
     if (!isRecord(m) || !isDay(m.day) || typeof m.step !== 'string' || !STEPS.includes(m.step))
       return null;
+    // tally is optional; a malformed one is dropped rather than rejecting the save
+    if ('tally' in m) {
+      const t = m.tally;
+      const ok =
+        isRecord(t) && isNonNegInt(t.answered) && isNonNegInt(t.lightning) &&
+        (t.bossWon === null || (typeof t.bossWon === 'number' && isPlanetList([t.bossWon])));
+      if (!ok) delete m.tally;
+    }
   }
 
   if (!isRecord(raw.dailyActiveSeconds)) return null;
