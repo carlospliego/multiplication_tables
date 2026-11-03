@@ -1,0 +1,5 @@
+.gauge { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.track { width: 28px; height: 160px; border: 3px solid currentColor; border-radius: 14px; display: flex; align-items: flex-end; overflow: hidden; }
+.fill { width: 100%; background: linear-gradient(to top, #ff8a00, #ffd400); transition: height 400ms ease-out; }
+.label { font-weight: 700; font-size: 1rem; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
