@@ -1,15 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createRng } from './engine/rng';
 import { setMuted, unlockAudio } from './audio/sfx';
 import { GameProvider, useGame } from './state/GameContext';
 import { FreeFlight } from './screens/FreeFlight';
 import { GalaxyMap } from './screens/GalaxyMap';
 import { Hangar } from './screens/Hangar';
 import { MissionScreen } from './screens/MissionScreen';
+import { ParentGate } from './screens/ParentGate';
 import { StarMap } from './screens/StarMap';
 import { SystemsCheck } from './screens/SystemsCheck';
 import { Welcome } from './screens/Welcome';
 
 export const GAME_TITLE = 'Times Table Rocket';
+
+function ParentGateRoute() {
+  const [rng] = useState(() => createRng(Date.now()));
+  return <ParentGate rng={rng} />;
+}
 
 function Screens() {
   const { state } = useGame();
@@ -45,8 +52,10 @@ function Screens() {
       return <StarMap />;
     case 'hangar':
       return <Hangar />;
+    case 'parentGate':
+      return <ParentGateRoute />;
     default:
-      // map, plus screens that arrive in later tasks (parent*)
+      // map, plus screens that arrive in later tasks (parent)
       return <GalaxyMap />;
   }
 }

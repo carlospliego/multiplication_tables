@@ -30,3 +30,13 @@ it.each([
   await userEvent.click(screen.getByRole('button', { name: /back to galaxy/i }));
   expect(screen.getByRole('button', { name: /launch mission/i })).toBeInTheDocument();
 });
+
+it('routes Grown-ups to the parent gate and Close back to the map', async () => {
+  const save = { ...createFreshSave('Ada', '2026-11-02T10:00:00.000Z'), placementDone: true };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  render(<App />);
+  await userEvent.click(screen.getByRole('button', { name: /grown-ups/i }));
+  expect(screen.getByText(/grown-ups only: what is/i)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /close/i }));
+  expect(screen.getByRole('button', { name: /launch mission/i })).toBeInTheDocument();
+});
