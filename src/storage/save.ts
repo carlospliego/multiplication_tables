@@ -1,3 +1,5 @@
+import { DEFAULT_DIFFICULTY, isDifficulty } from '../engine/difficulty';
+import type { Difficulty } from '../engine/difficulty';
 import { ALL_FACT_IDS } from '../engine/facts';
 import { newFactRecord } from '../engine/levels';
 import type { MissionState, Streak } from '../engine/mission';
@@ -16,7 +18,8 @@ export interface SaveData {
   streak: Streak;
   mission: MissionState | null;
   dailyActiveSeconds: Record<Day, number>; // last 60 days
-  settings: { soundOn: boolean };
+  /** difficulty is absent in saves made before it existed; read it with difficultyOf(). */
+  settings: { soundOn: boolean; difficulty?: Difficulty };
   celebrated: { planetsUnlocked: PlanetId[]; galaxyMaster: boolean };
 }
 
@@ -43,7 +46,7 @@ export function createFreshSave(captainName: string, nowIso: string): SaveData {
     streak: { current: 0, best: 0, lastMissionDay: null },
     mission: null,
     dailyActiveSeconds: {},
-    settings: { soundOn: true },
+    settings: { soundOn: true, difficulty: DEFAULT_DIFFICULTY },
     celebrated: { planetsUnlocked: [], galaxyMaster: false },
   };
 }
@@ -142,6 +145,8 @@ export function validateSave(raw: unknown): SaveData | null {
   }
 
   if (!isRecord(raw.settings) || typeof raw.settings.soundOn !== 'boolean') return null;
+  // Optional (older saves lack it); an unknown value is dropped rather than rejecting the save.
+  if ('difficulty' in raw.settings && !isDifficulty(raw.settings.difficulty)) delete raw.settings.difficulty;
 
   const c = raw.celebrated;
   if (!isRecord(c) || !isPlanetList(c.planetsUnlocked) || typeof c.galaxyMaster !== 'boolean')

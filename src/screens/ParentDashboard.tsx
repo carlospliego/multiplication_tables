@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
+import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
 import { parseFact } from '../engine/facts';
 import { displayStreak } from '../engine/mission';
 import { masteredCount } from '../engine/progress';
@@ -39,6 +40,7 @@ export function ParentDashboard() {
   };
 
   const today = todayLocal();
+  const level = DIFFICULTY[difficultyOf(save.settings)];
   const week = lastNDays(save.dailyActiveSeconds, today, 7);
   const weekSeconds = week.reduce((sum, d) => sum + d.seconds, 0);
   const maxSeconds = Math.max(60, ...week.map((d) => d.seconds));
@@ -68,7 +70,11 @@ export function ParentDashboard() {
           <div><dt>Current streak</dt><dd>{displayStreak(save.streak, today)}</dd></div>
           <div><dt>Best streak</dt><dd>{save.streak.best}</dd></div>
           <div><dt>Planets freed</dt><dd>{save.bossesBeaten.length}</dd></div>
+          <div><dt>Difficulty</dt><dd>{level.label}</dd></div>
         </dl>
+        <p className={`${styles.note} ${styles.difficultyNote}`}>
+          {`On ${level.label}, quests have ${level.questSize} questions and an answer counts as fast (toward mastery) within ${level.fastMs / 1000} seconds. Your child can change this on the map.`}
+        </p>
       </section>
 
       <section className={styles.panel} aria-labelledby="grid-title">

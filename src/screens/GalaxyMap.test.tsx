@@ -120,4 +120,21 @@ describe('GalaxyMap', () => {
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'startMission' }));
     expect(dispatch).toHaveBeenCalledWith({ type: 'navigate', screen: 'mission' });
   });
+
+  it('shows the difficulty picker and dispatches the choice', async () => {
+    setup({ settings: { soundOn: true, difficulty: 'easy' } });
+    const user = userEvent.setup();
+    render(<GalaxyMap />);
+    const group = screen.getByRole('group', { name: 'Difficulty' });
+    expect(within(group).getByRole('button', { name: /easy/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(group).getByRole('button', { name: /normal/i })).toHaveAttribute('aria-pressed', 'false');
+    await user.click(within(group).getByRole('button', { name: /hard/i }));
+    expect(dispatch).toHaveBeenCalledWith({ type: 'setDifficulty', difficulty: 'hard' });
+  });
+
+  it('an old save without a difficulty shows Normal', () => {
+    setup({ settings: { soundOn: true } });
+    render(<GalaxyMap />);
+    expect(screen.getByRole('button', { name: /normal/i })).toHaveAttribute('aria-pressed', 'true');
+  });
 });

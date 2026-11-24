@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { todayLocal } from '../engine/dates';
+import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
 import { PLANETS } from '../engine/facts';
 import { missionForToday } from '../engine/mission';
 import type { MissionStep } from '../engine/mission';
@@ -7,6 +8,7 @@ import { createRng } from '../engine/rng';
 import { buildQuest, buildWarmup } from '../engine/scheduler';
 import { availableBoss } from '../engine/progress';
 import type { AnswerInput, FactId, PlanetId, Question } from '../engine/types';
+import { useQuestSession } from '../hooks/useQuestSession';
 import { useGame } from '../state/GameContext';
 import { BossScreen } from './BossScreen';
 import { MissionComplete } from './MissionComplete';
@@ -22,37 +24,50 @@ const TITLES: Partial<Record<MissionStep, string>> = {
 type Summary = { answered: number; lightning: number };
 
 function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3' }) {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, session } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
-  // Built once per mount (the parent keys this component by step), from the latest facts.
-  const [queue] = useState<Question[]>(() => {
-    const facts = state.save!.facts;
-    const today = todayLocal();
-    return step === 'warmup'
-      ? buildWarmup(facts, today, rng)
-      : buildQuest(facts, { today, allowNew: true }, rng);
-  });
+  const save = state.save!;
+  const difficulty = difficultyOf(save.settings);
+  const { fastMs, questSize } = DIFFICULTY[difficulty];
+  // Resumed from the session if this exact quest was in progress; otherwise built once per
+  // mount (the parent keys this component by step) from the latest facts.
+  const quest = useQuestSession(
+    session,
+    { kind: 'mission', owner: save.createdAt, day: todayLocal(), step, difficulty },
+    (): Question[] => {
+      const today = todayLocal();
+      return step === 'warmup'
+        ? buildWarmup(save.facts, today, rng)
+        : buildQuest(save.facts, { today, allowNew: true, size: questSize }, rng);
+    },
+  );
 
   const onAnswer = useCallback(
     (factId: FactId, answer: AnswerInput, activeSeconds: number) =>
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
     [dispatch],
   );
-  const parts = state.save!.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart);
+  const parts = save.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart);
+  const clearQuest = quest.clear;
   const onComplete = useCallback(
     (summary: Summary) => {
+      clearQuest();
       dispatch({ type: 'advanceMission', today: todayLocal(), summary });
     },
-    [dispatch],
+    [dispatch, clearQuest],
   );
   const onExit = useCallback(() => dispatch({ type: 'navigate', screen: 'map' }), [dispatch]);
 
   return (
     <QuestScreen
       title={TITLES[step] as string}
-      queue={queue}
+      queue={quest.queue}
       rng={rng}
       parts={parts}
+      fastMs={fastMs}
+      initialRun={quest.initialRun}
+      initialIntroduced={quest.initialIntroduced}
+      onProgress={quest.saveProgress}
       onAnswer={onAnswer}
       onComplete={onComplete}
       onExit={onExit}
@@ -102,7 +117,8 @@ function MissionBoss() {
   );
 
   if (planet === null) return null;
-  return <BossScreen key={`boss-${planet}`} planet={planet} facts={facts} rng={rng} onAnswer={onAnswer} onWon={onWon} onExit={onExit} onFinish={onFinish} />;
+  const fastMs = DIFFICULTY[difficultyOf(state.save!.settings)].fastMs;
+  return <BossScreen key={`boss-${planet}`} planet={planet} facts={facts} rng={rng} fastMs={fastMs} onAnswer={onAnswer} onWon={onWon} onExit={onExit} onFinish={onFinish} />;
 }
 
 export function MissionScreen() {

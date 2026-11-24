@@ -1,20 +1,32 @@
 import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { getStorage, loadSave, SAVE_KEY, writeSave } from '../storage/save';
+import { getSessionStorage, loadSessionScreen, writeSessionScreen } from '../storage/session';
 import { gameReducer, initialGameState } from './gameReducer';
 import type { GameAction, GameState } from './gameReducer';
 
 interface GameContextValue {
   state: GameState;
   dispatch: (a: GameAction) => void;
+  /** Per-tab sessionStorage for resuming the current screen and quest after a reload. */
+  session: Storage | null;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
 
-export function GameProvider({ children, storage }: { children: ReactNode; storage?: Storage | null }) {
+export function GameProvider({
+  children,
+  storage,
+  session,
+}: {
+  children: ReactNode;
+  storage?: Storage | null;
+  session?: Storage | null;
+}) {
   const [store] = useState<Storage | null>(() => (storage !== undefined ? storage : getStorage()));
+  const [sessionStore] = useState<Storage | null>(() => (session !== undefined ? session : getSessionStorage()));
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
-    initialGameState(loadSave(store, Date.now())),
+    initialGameState(loadSave(store, Date.now()), loadSessionScreen(sessionStore)),
   );
   const lastSave = useRef(state.save);
 
@@ -33,6 +45,10 @@ export function GameProvider({ children, storage }: { children: ReactNode; stora
   }, [state.save, store]);
 
   useEffect(() => {
+    writeSessionScreen(sessionStore, state.screen);
+  }, [state.screen, sessionStore]);
+
+  useEffect(() => {
     try {
       void navigator.storage?.persist?.();
     } catch {
@@ -40,7 +56,7 @@ export function GameProvider({ children, storage }: { children: ReactNode; stora
     }
   }, []);
 
-  return <GameContext.Provider value={{ state, dispatch }}>{children}</GameContext.Provider>;
+  return <GameContext.Provider value={{ state, dispatch, session: sessionStore }}>{children}</GameContext.Provider>;
 }
 
 export function useGame(): GameContextValue {

@@ -188,4 +188,18 @@ describe('GalaxyMap', () => {
     expect(screen.getByRole('button', { name: /free flight/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /launch mission/i })).toBeNull();
   });
+
+  it('quest length follows the difficulty; the warm-up stays 5', async () => {
+    const user = userEvent.setup();
+    for (const [difficulty, len] of [['easy', '10'], ['normal', '15'], ['hard', '20']] as const) {
+      const { s } = fakeStorage(baseSave({ settings: { soundOn: true, difficulty } }));
+      const r = render(<GameProvider storage={s}><MissionScreen /></GameProvider>);
+      expect(screen.getByTestId('len').textContent).toBe('5');
+      await user.click(screen.getByText('finish'));
+      expect(screen.getByText('Quest 1')).toBeInTheDocument();
+      expect(screen.getByTestId('len').textContent).toBe(len);
+      r.unmount();
+      window.sessionStorage.clear();
+    }
+  });
 });

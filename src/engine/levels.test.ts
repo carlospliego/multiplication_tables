@@ -136,3 +136,14 @@ describe('levels', () => {
     expect(input).toEqual(snapshot);
   });
 });
+
+describe('fast threshold by difficulty', () => {
+  it('applyAnswer and isFastAnswer honour a custom fastMs', () => {
+    const at = (ms: number) => ({ correct: true, responseMs: ms, interrupted: false });
+    expect(isFastAnswer(at(5000))).toBe(false);
+    expect(isFastAnswer(at(5000), 6000)).toBe(true);
+    expect(isFastAnswer(at(3500), 3000)).toBe(false);
+    expect(applyAnswer(rec(2), at(5000), T, 6000).level).toBe(3);
+    expect(applyAnswer(rec(2), at(3500), T, 3000).level).toBe(2);
+  });
+});

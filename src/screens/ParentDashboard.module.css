@@ -31,3 +31,4 @@
 .input { min-height: 44px; font: inherit; padding: 0 10px; border-radius: 10px; }
 .error { margin: 8px 0 0; text-align: center; color: var(--neon-yellow); font-weight: 800; }
 .confirm { margin-top: 10px; text-align: center; }
+.difficultyNote { margin: 12px 0 0; font-size: 0.95rem; }

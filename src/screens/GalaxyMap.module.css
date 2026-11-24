@@ -1,5 +1,5 @@
 .screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
-.screen > :is(.header, .nav, .primary, .map) { position: relative; }
+.screen > :is(.header, .nav, .difficulty, .primary, .map) { position: relative; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: min(100%, 520px); }
 .greeting { text-align: center; }
 .title { margin: 0; font-size: clamp(1.6rem, 6vmin, 2.6rem); }
@@ -8,6 +8,11 @@
 .nb { min-height: 48px; min-width: 48px; padding: 0 16px; font: inherit; font-size: 1.05rem; font-weight: 700; border-radius: 14px; border: 2px solid var(--neon-cyan); background: var(--space-panel); color: var(--ink); cursor: pointer; }
 .nb[aria-pressed='false'] { border-color: var(--ink-dim); }
 .nb[aria-pressed='false'] .soundLabel { text-decoration: line-through; text-decoration-thickness: 2px; }
+.difficulty { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; }
+.difficultyLabel { flex-basis: 100%; text-align: center; font-size: 1rem; font-weight: 700; color: var(--ink-dim); }
+.level { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 52px; min-width: 88px; padding: 4px 14px; font: inherit; font-size: 1.05rem; font-weight: 800; line-height: 1.15; border-radius: 14px; border: 2px solid var(--ink-dim); background: var(--space-panel); color: var(--ink); cursor: pointer; }
+.level[aria-pressed='true'] { border-color: var(--neon-yellow); background: var(--neon-yellow); color: var(--space-bg); }
+.levelHint { font-size: 0.8rem; font-weight: 600; opacity: 0.85; }
 .primary { min-height: 56px; padding: 0 32px; font: inherit; font-size: 1.4rem; font-weight: 800; border-radius: 14px; border: 0; background: var(--neon-lime); color: var(--space-bg); cursor: pointer; }
 .map { position: relative; width: min(100%, 460px); aspect-ratio: 1 / 2; flex: none; margin: 40px 0; }
 .path { position: absolute; inset: 0; width: 100%; height: 100%; }

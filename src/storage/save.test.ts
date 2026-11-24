@@ -44,6 +44,7 @@ describe('createFreshSave', () => {
     expect(s.placementDone).toBe(false);
     expect(s.streak).toEqual({ current: 0, best: 0, lastMissionDay: null });
     expect(s.settings.soundOn).toBe(true);
+    expect(s.settings.difficulty).toBe('normal');
     expect(s.mission).toBeNull();
     expect(validateSave(clone(s))).toEqual(s);
   });
@@ -186,6 +187,10 @@ describe('validateSave', () => {
     expect(validateSave({ ...b, dailyActiveSeconds: { '2026-11-02': -1 } })).toBeNull();
     expect(validateSave({ ...b, dailyActiveSeconds: { bad: 1 } })).toBeNull();
     expect(validateSave({ ...b, settings: { soundOn: 'x' } })).toBeNull();
+    // difficulty: optional (saves from before it existed), and an unknown value is dropped
+    expect(validateSave({ ...b, settings: { soundOn: true } })!.settings).toEqual({ soundOn: true });
+    expect(validateSave({ ...b, settings: { soundOn: true, difficulty: 'hard' } })!.settings.difficulty).toBe('hard');
+    expect(validateSave({ ...b, settings: { soundOn: true, difficulty: 'insane' } })!.settings).toEqual({ soundOn: true });
     expect(
       validateSave({ ...b, celebrated: { planetsUnlocked: [0], galaxyMaster: false } }),
     ).toBeNull();

@@ -3,6 +3,8 @@ import { randInt } from './rng';
 
 export const MAX_REINSERTS_PER_FACT = 2;
 export const MAX_QUEST_LENGTH = 20;
+/** Re-asks may always grow a quest by at least this many questions past its starting length. */
+export const MIN_REINSERT_ROOM = 5;
 
 export interface QuestRun {
   queue: Question[];
@@ -11,10 +13,13 @@ export interface QuestRun {
   fuel: number;
   lightning: number;
   answered: number;
+  /** Re-asks stop once the queue reaches this length. */
+  maxLength: number;
 }
 
 export function startQuestRun(queue: Question[]): QuestRun {
-  return { queue: [...queue], index: 0, reinserts: {}, fuel: 0, lightning: 0, answered: 0 };
+  const maxLength = Math.max(MAX_QUEST_LENGTH, queue.length + MIN_REINSERT_ROOM);
+  return { queue: [...queue], index: 0, reinserts: {}, fuel: 0, lightning: 0, answered: 0, maxLength };
 }
 
 export function currentQuestion(run: QuestRun): Question | null {
@@ -48,7 +53,7 @@ export function recordQuestResult(run: QuestRun, correct: boolean, fast: boolean
     return next;
   }
   const used = run.reinserts[q.factId] ?? 0;
-  if (used >= MAX_REINSERTS_PER_FACT || next.queue.length >= MAX_QUEST_LENGTH) return next;
+  if (used >= MAX_REINSERTS_PER_FACT || next.queue.length >= run.maxLength) return next;
 
   const len = next.queue.length;
   const base = Math.min(run.index + randInt(3, 5, rng), len);

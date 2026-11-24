@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createRng } from './rng';
 import { makeQuestion } from './facts';
 import {
-  MAX_QUEST_LENGTH, currentQuestion, fuelFraction, isQuestDone, recordQuestResult, startQuestRun,
+  MAX_QUEST_LENGTH, MIN_REINSERT_ROOM, currentQuestion, fuelFraction, isQuestDone, recordQuestResult, startQuestRun,
 } from './questRun';
 
 const ids = ['1x1', '1x2', '1x3', '1x4', '1x5', '1x6', '1x7', '1x8', '1x9', '2x2', '2x3', '2x4', '2x5', '2x6', '2x7'];
@@ -76,5 +76,13 @@ describe('questRun', () => {
     const r = recordQuestResult(startQuestRun([q, ...mk(6).slice(1)]), false, false, createRng(1));
     expect(r.queue[0]!.kind).toBe('discovery');
     expect(r.queue.filter((x) => x.factId === '1x1')[1]!.kind).toBe('normal');
+  });
+  it('a longer quest keeps room for re-asks', () => {
+    expect(startQuestRun(mk(15)).maxLength).toBe(MAX_QUEST_LENGTH);
+    const twenty = [...mk(15), ...mk(5)];
+    expect(startQuestRun(twenty).maxLength).toBe(20 + MIN_REINSERT_ROOM);
+    let r = startQuestRun(twenty);
+    r = recordQuestResult(r, false, false, createRng(1));
+    expect(r.queue.length).toBe(21);
   });
 });
