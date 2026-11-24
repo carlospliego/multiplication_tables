@@ -118,6 +118,17 @@ At ~6–8 s per question including feedback, this lands near 10 minutes.
 - Progress is saved after **every answer**. If he leaves mid-mission and returns the **same
   local day**, the mission resumes at the start of the step he was on. On a new day, a fresh
   mission is generated.
+- **Session resume (added 2026-11-23):** within the same browser tab, the current screen and
+  the in-progress quest (queue, position, fuel, re-asks, discoveries shown) are kept in
+  `sessionStorage`, so a reload returns to the exact question. The snapshot only resumes into
+  the same save, day, step and difficulty; otherwise the step starts fresh as above. The
+  Grown-ups dashboard is restored as its parent gate. Boss battles and the Systems Check
+  restart from their beginning.
+- **Difficulty (added 2026-11-23):** Easy / Normal / Hard, picked by the child on the Galaxy
+  Map and stored in `settings.difficulty` (absent in older saves = Normal). It sets quest length
+  (10 / 15 / 20; re-asks may grow a quest up to max(20, length + 5)) and the fast threshold used
+  for Lightning and mastery (6 s / 4 s / 3 s). The warm-up, boss and Systems Check placement
+  (always 4 s) are unchanged.
 - **One mission per day counts.** After today's mission is complete, the map offers
   **Free Flight**: unlimited quests that review introduced facts but **never introduce new
   facts** (protects the spacing schedule). Free Flight answers still update fact levels.

@@ -22,7 +22,21 @@ Once the site is live (see "Deploying"):
 2. Tap **Share**, then **Add to Home Screen**, then **Add**.
 3. Open it once while online so it can save itself for offline use.
 
+## Difficulty
+
+On the Galaxy Map, pick **Easy**, **Normal** or **Hard**. The choice is saved with progress and can be changed at any time.
+
+| Level | Questions per quest | Counts as a fast answer |
+|---|---|---|
+| Easy | 10 | within 6 seconds |
+| Normal | 15 | within 4 seconds |
+| Hard | 20 | within 3 seconds |
+
+Fast answers earn the ⚡ Lightning burst and count toward mastery, so a fact is mastered sooner on Easy and later on Hard. The warm-up (5 questions) and boss battles are the same at every level. The Grown-ups area shows the current level.
+
 ## Progress and backups
+
+If the page is reloaded in the middle of a quest, the game comes back to the same screen and the same question. This in-progress state lives only in that browser tab (session storage). Opening the app fresh starts the current quest over, while all learning progress is kept.
 
 Progress is saved **only on that device and browser**. There is no cloud copy. Clearing Safari website data, or using a different device, starts from zero.
 

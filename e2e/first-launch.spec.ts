@@ -42,6 +42,13 @@ test('first launch to first quest', async ({ page }) => {
   const question = page.getByRole('region', { name: 'Question' });
   for (let i = 0; i < 5; i++) {
     await expect(question).toBeVisible();
+    if (i === 2) {
+      // Reloading mid-quest returns to the same question (session state), not the map.
+      const asked = await question.getByRole('heading').textContent();
+      await page.reload();
+      await expect(page.getByRole('heading', { name: 'Warm-up' })).toBeVisible();
+      await expect(question.getByRole('heading')).toHaveText(asked as string);
+    }
     await answerQuestion(page);
     await expect(question).toBeHidden(); // "Great!" feedback replaces the card
   }

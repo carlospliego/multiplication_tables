@@ -1,3 +1,5 @@
+import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
+import type { Difficulty } from '../engine/difficulty';
 import { applyAnswer } from '../engine/levels';
 import { advanceMission, applyMissionComplete, missionForToday } from '../engine/mission';
 import { applyPlacementAnswer } from '../engine/placement';
@@ -29,17 +31,36 @@ export type GameAction =
   | { type: 'bossBeaten'; planet: PlanetId }
   | { type: 'markCelebrated'; planet?: PlanetId; galaxyMaster?: boolean }
   | { type: 'toggleSound' }
+  | { type: 'setDifficulty'; difficulty: Difficulty }
   | { type: 'navigate'; screen: Screen }
   | { type: 'importSave'; save: SaveData }
   | { type: 'resetProgress' }
   | { type: 'storageFailed' }
   | { type: 'dismissCorruptNotice' };
 
-export function initialGameState(load: LoadResult): GameState {
+/** Screens a reload may return to. The dashboard comes back as its gate, so a reload never skips it. */
+const RESTORABLE: Partial<Record<string, Screen>> = {
+  map: 'map',
+  mission: 'mission',
+  freeFlight: 'freeFlight',
+  starMap: 'starMap',
+  hangar: 'hangar',
+  parentGate: 'parentGate',
+  parent: 'parentGate',
+};
+
+/** The screen to open on load: the session's last screen when it still makes sense, else the default. */
+export function startScreen(save: SaveData | null, sessionScreen: string | null = null): Screen {
+  if (!save) return 'welcome';
+  if (!save.placementDone) return 'systemsCheck';
+  return (sessionScreen !== null && RESTORABLE[sessionScreen]) || 'map';
+}
+
+export function initialGameState(load: LoadResult, sessionScreen: string | null = null): GameState {
   const { save, status } = load;
   return {
     save,
-    screen: !save ? 'welcome' : save.placementDone ? 'map' : 'systemsCheck',
+    screen: startScreen(save, sessionScreen),
     loadStatus: status,
     storageOk: status !== 'unavailable',
     corruptNotice: status === 'corrupt',
@@ -93,7 +114,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const nextRec =
         action.mode === 'placement'
           ? applyPlacementAnswer(rec, ans, action.today)
-          : applyAnswer(rec, ans, action.today);
+          : applyAnswer(rec, ans, action.today, DIFFICULTY[difficultyOf(save.settings)].fastMs);
       return withSave({
         facts: { ...save.facts, [action.factId]: nextRec },
         dailyActiveSeconds: addActiveSeconds(save.dailyActiveSeconds, action.today, action.activeSeconds),
@@ -145,5 +166,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case 'toggleSound':
       return withSave({ settings: { ...save.settings, soundOn: !save.settings.soundOn } });
+    case 'setDifficulty':
+      if (difficultyOf(save.settings) === action.difficulty && save.settings.difficulty) return state;
+      return withSave({ settings: { ...save.settings, difficulty: action.difficulty } });
   }
 }

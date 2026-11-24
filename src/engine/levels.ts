@@ -22,11 +22,11 @@ export function newFactRecord(): FactRecord {
   };
 }
 
-export function isFastAnswer(ans: AnswerInput): boolean {
-  return ans.correct && !ans.interrupted && ans.responseMs <= FAST_MS;
+export function isFastAnswer(ans: AnswerInput, fastMs: number = FAST_MS): boolean {
+  return ans.correct && !ans.interrupted && ans.responseMs <= fastMs;
 }
 
-export function applyAnswer(rec: FactRecord, ans: AnswerInput, today: Day): FactRecord {
+export function applyAnswer(rec: FactRecord, ans: AnswerInput, today: Day, fastMs: number = FAST_MS): FactRecord {
   // 1. stats
   const next: FactRecord = {
     ...rec,
@@ -49,7 +49,7 @@ export function applyAnswer(rec: FactRecord, ans: AnswerInput, today: Day): Fact
   if (!ans.correct) {
     // 3. wrong
     next.level = 1;
-  } else if (isFastAnswer(ans)) {
+  } else if (isFastAnswer(ans, fastMs)) {
     // 4. correct and fast
     if (!next.fastDays.includes(today)) next.fastDays.push(today);
     next.fastDays = next.fastDays.slice(-FAST_DAYS_KEPT);

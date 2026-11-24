@@ -5,7 +5,7 @@ import { RepairScreen } from '../components/RepairScreen';
 import { BOSS_SHIELD, nextBossQuestion, recordBossAnswer, startBoss } from '../engine/boss';
 import type { AnswerInput, FactId, Facts, PlanetId, Question, Rng } from '../engine/types';
 import { play } from '../audio/sfx';
-import { isFastAnswer } from '../engine/levels';
+import { FAST_MS, isFastAnswer } from '../engine/levels';
 import styles from './BossScreen.module.css';
 
 export const BOSS_FEEDBACK_MS = 700;
@@ -14,6 +14,8 @@ export interface BossScreenProps {
   planet: PlanetId;
   facts: Facts;
   rng: Rng;
+  /** Fast-answer threshold for Lightning (from the difficulty). */
+  fastMs?: number;
   onAnswer(factId: FactId, ans: AnswerInput, activeSeconds: number): void;
   /** Called the moment the boss is defeated, so the win is saved before the child taps Continue. */
   onWon(): void;
@@ -21,7 +23,7 @@ export interface BossScreenProps {
   onFinish(result: 'won' | 'retreated', summary: { answered: number; lightning: number }): void;
 }
 
-export function BossScreen({ planet, facts, rng, onAnswer, onWon, onExit, onFinish }: BossScreenProps) {
+export function BossScreen({ planet, facts, rng, fastMs = FAST_MS, onAnswer, onWon, onExit, onFinish }: BossScreenProps) {
   const [run, setRun] = useState(() => startBoss(planet));
   const [q, setQ] = useState<Question>(() => nextBossQuestion(facts, startBoss(planet), rng));
   const [zapping, setZapping] = useState(false);
@@ -42,7 +44,7 @@ export function BossScreen({ planet, facts, rng, onAnswer, onWon, onExit, onFini
     const activeSeconds = Number.isFinite(raw) ? Math.max(0, raw) : 0;
     lastAt.current = now;
     onAnswer(q.factId, { correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted }, activeSeconds);
-    const fast = isFastAnswer({ correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted });
+    const fast = isFastAnswer({ correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted }, fastMs);
     tally.current.answered += 1;
     if (fast) tally.current.lightning += 1;
     const next = recordBossAnswer(run, q.factId, r.correct);

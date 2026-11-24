@@ -3,6 +3,7 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QuestScreen } from './QuestScreen';
 import type { Question } from '../engine/types';
+import { recordQuestResult, startQuestRun } from '../engine/questRun';
 
 const mk = (a: number, b: number, kind: Question['kind'] = 'normal'): Question => ({
   factId: `${a}x${b}`, a, b, answer: a * b, kind,
@@ -117,5 +118,26 @@ describe('QuestScreen', () => {
     const lightning = p.onComplete.mock.calls[0]![0].lightning;
     expect(lightning).toBeGreaterThanOrEqual(1);
     expect(lightning).toBeLessThanOrEqual(2);
+  });
+
+  it('resumes from initialRun and reports progress after each answer', async () => {
+    const queue = [mk(2, 3), mk(3, 4), mk(4, 5)];
+    const resumed = recordQuestResult(startQuestRun(queue), true, false, () => 0);
+    const onProgress = vi.fn();
+    const p = { onAnswer: vi.fn(), onComplete: vi.fn(), onExit: vi.fn() };
+    render(<QuestScreen title="Test" queue={queue} rng={() => 0} initialRun={resumed} onProgress={onProgress} {...p} />);
+    expect(screen.getByRole('heading', { name: /3 × 4|4 × 3/ })).toBeInTheDocument();
+    expect(onProgress).toHaveBeenLastCalledWith(resumed, []);
+    await answer(12); skip();
+    expect(onProgress.mock.lastCall![0].index).toBe(2);
+    expect(onProgress.mock.lastCall![0].fuel).toBe(2);
+  });
+
+  it('uses fastMs for Lightning', async () => {
+    const p = { onAnswer: vi.fn(), onComplete: vi.fn(), onExit: vi.fn() };
+    render(<QuestScreen title="Test" queue={[mk(2, 3)]} rng={() => 0} fastMs={60_000} {...p} />);
+    act(() => { vi.advanceTimersByTime(5000); });
+    await answer(6); skip(); launch();
+    expect(p.onComplete.mock.calls[0]![0].lightning).toBe(1);
   });
 });

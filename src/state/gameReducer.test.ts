@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createFreshSave } from '../storage/save';
 import type { SaveData } from '../storage/save';
 import { makeFacts } from '../engine/progress';
-import { gameReducer, initialGameState } from './gameReducer';
+import { gameReducer, initialGameState, startScreen } from './gameReducer';
 import type { GameState } from './gameReducer';
 
 const NOW = '2026-11-02T10:00:00.000Z';
@@ -180,8 +180,55 @@ describe('gameReducer', () => {
       { type: 'bossBeaten', planet: 1 },
       { type: 'markCelebrated', planet: 1 },
       { type: 'toggleSound' },
+      { type: 'setDifficulty', difficulty: 'hard' },
     ] as const) {
       expect(gameReducer(empty, a)).toBe(empty);
     }
+  });
+});
+
+describe('difficulty', () => {
+  it('setDifficulty stores the choice', () => {
+    const s = gameReducer(withSave(), { type: 'setDifficulty', difficulty: 'easy' });
+    expect(s.save!.settings).toEqual({ soundOn: true, difficulty: 'easy' });
+    expect(gameReducer(s, { type: 'setDifficulty', difficulty: 'easy' })).toBe(s);
+  });
+
+  it('a save without the setting gets it written when picked', () => {
+    const old = withSave({ settings: { soundOn: true } });
+    const s = gameReducer(old, { type: 'setDifficulty', difficulty: 'normal' });
+    expect(s.save!.settings.difficulty).toBe('normal');
+  });
+
+  it('answer uses the fast threshold of the chosen difficulty', () => {
+    const at5s = { correct: true, responseMs: 5000, interrupted: false };
+    const facts = makeFacts({ '2x3': { level: 2 } });
+    const answer = (difficulty: 'easy' | 'normal') =>
+      gameReducer(withSave({ facts, settings: { soundOn: true, difficulty } }), {
+        type: 'answer', factId: '2x3', answer: at5s, today: D1, mode: 'normal', activeSeconds: 1,
+      }).save!.facts['2x3']!.level;
+    expect(answer('easy')).toBe(3);
+    expect(answer('normal')).toBe(2);
+  });
+});
+
+describe('startScreen (session restore)', () => {
+  const s = { ...createFreshSave('Ada', NOW), placementDone: true };
+  it('returns to the session screen when it is safe', () => {
+    for (const scr of ['map', 'mission', 'freeFlight', 'starMap', 'hangar', 'parentGate']) {
+      expect(startScreen(s, scr)).toBe(scr);
+    }
+    expect(initialGameState({ status: 'ok', save: s }, 'hangar').screen).toBe('hangar');
+  });
+  it('never skips the parent gate, and ignores unknown or stale screens', () => {
+    expect(startScreen(s, 'parent')).toBe('parentGate');
+    expect(startScreen(s, 'systemsCheck')).toBe('map');
+    expect(startScreen(s, 'welcome')).toBe('map');
+    expect(startScreen(s, 'bogus')).toBe('map');
+    expect(startScreen(s, null)).toBe('map');
+  });
+  it('placement and no-save rules still win', () => {
+    expect(startScreen({ ...s, placementDone: false }, 'hangar')).toBe('systemsCheck');
+    expect(startScreen(null, 'hangar')).toBe('welcome');
   });
 });

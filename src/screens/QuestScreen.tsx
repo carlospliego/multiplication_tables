@@ -6,7 +6,8 @@ import { Rocket } from '../components/Rocket';
 import { FuelGauge } from '../components/FuelGauge';
 import { LightningBurst } from '../components/LightningBurst';
 import { currentQuestion, fuelFraction, isQuestDone, recordQuestResult, startQuestRun } from '../engine/questRun';
-import { isFastAnswer } from '../engine/levels';
+import type { QuestRun } from '../engine/questRun';
+import { FAST_MS, isFastAnswer } from '../engine/levels';
 import type { AnswerInput, FactId, Question, Rng } from '../engine/types';
 import { play } from '../audio/sfx';
 import styles from './QuestScreen.module.css';
@@ -30,18 +31,38 @@ export interface QuestScreenProps {
   rng: Rng;
   /** Ship parts earned so far, drawn on the rocket. */
   parts?: readonly string[];
+  /** Fast-answer threshold for Lightning (from the difficulty). */
+  fastMs?: number;
+  /** Resume a quest already in progress (from the session) instead of starting `queue` fresh. */
+  initialRun?: QuestRun;
+  /** Discovery cards already shown in the resumed run. */
+  initialIntroduced?: readonly FactId[];
+  /** Called with the run on mount and after every change, so the caller can save it. */
+  onProgress?(run: QuestRun, introduced: FactId[]): void;
   onAnswer(factId: FactId, ans: AnswerInput, activeSeconds: number): void;
   onComplete(summary: { answered: number; lightning: number }): void;
   onExit(): void;
 }
 
-export function QuestScreen({ title, queue, rng, parts = [], onAnswer, onComplete, onExit }: QuestScreenProps) {
-  const [run, setRun] = useState(() => startQuestRun(queue));
+export function QuestScreen({
+  title,
+  queue,
+  rng,
+  parts = [],
+  fastMs = FAST_MS,
+  initialRun,
+  initialIntroduced,
+  onProgress,
+  onAnswer,
+  onComplete,
+  onExit,
+}: QuestScreenProps) {
+  const [run, setRun] = useState(() => initialRun ?? startQuestRun(queue));
   const [feedback, setFeedback] = useState<{ fast: boolean } | null>(null);
   const [repair, setRepair] = useState<Question | null>(null);
   const [wobbling, setWobbling] = useState(false);
   const [launching, setLaunching] = useState(false);
-  const [introduced, setIntroduced] = useState<ReadonlySet<FactId>>(new Set());
+  const [introduced, setIntroduced] = useState<ReadonlySet<FactId>>(() => new Set(initialIntroduced ?? []));
   const lastAt = useRef(performance.now());
   const completed = useRef(false);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -49,6 +70,12 @@ export function QuestScreen({ title, queue, rng, parts = [], onAnswer, onComplet
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
   const wobbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onProgressRef = useRef(onProgress);
+  onProgressRef.current = onProgress;
+
+  useEffect(() => {
+    onProgressRef.current?.(run, [...introduced]);
+  }, [run, introduced]);
 
   useEffect(() => () => {
     if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
@@ -83,7 +110,7 @@ export function QuestScreen({ title, queue, rng, parts = [], onAnswer, onComplet
     const activeSeconds = Number.isFinite(raw) ? Math.max(0, raw) : 0;
     lastAt.current = now;
     const ans: AnswerInput = { correct: r.correct, responseMs: r.responseMs, interrupted: r.interrupted };
-    const fast = isFastAnswer(ans);
+    const fast = isFastAnswer(ans, fastMs);
     onAnswer(q.factId, ans, activeSeconds);
     setRun(recordQuestResult(run, r.correct, fast, rng));
     if (r.correct) {

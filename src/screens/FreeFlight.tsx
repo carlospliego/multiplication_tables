@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { todayLocal } from '../engine/dates';
+import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
+import { useQuestSession } from '../hooks/useQuestSession';
 import { createRng } from '../engine/rng';
 import { buildQuest } from '../engine/scheduler';
 import type { AnswerInput, FactId, Question } from '../engine/types';
@@ -8,11 +10,22 @@ import { useGame } from '../state/GameContext';
 import { QuestScreen } from './QuestScreen';
 
 function FreeFlightRound({ onNext }: { onNext(): void }) {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, session } = useGame();
   const [rng] = useState(() => createRng(Date.now()));
-  const [queue] = useState<Question[]>(() =>
-    buildQuest(state.save!.facts, { today: todayLocal(), allowNew: false }, rng),
+  const save = state.save!;
+  const difficulty = difficultyOf(save.settings);
+  const { fastMs, questSize } = DIFFICULTY[difficulty];
+  const quest = useQuestSession(
+    session,
+    { kind: 'freeFlight', owner: save.createdAt, day: todayLocal(), difficulty },
+    (): Question[] => buildQuest(save.facts, { today: todayLocal(), allowNew: false, size: questSize }, rng),
   );
+  const queue = quest.queue;
+  const clearQuest = quest.clear;
+  const onComplete = useCallback(() => {
+    clearQuest();
+    onNext();
+  }, [clearQuest, onNext]);
   const onAnswer = useCallback(
     (factId: FactId, answer: AnswerInput, activeSeconds: number) =>
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
@@ -32,9 +45,13 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
       title="Free Flight"
       queue={queue}
       rng={rng}
-      parts={state.save!.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart)}
+      parts={save.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart)}
+      fastMs={fastMs}
+      initialRun={quest.initialRun}
+      initialIntroduced={quest.initialIntroduced}
+      onProgress={quest.saveProgress}
       onAnswer={onAnswer}
-      onComplete={onNext}
+      onComplete={onComplete}
       onExit={onExit}
     />
   );
