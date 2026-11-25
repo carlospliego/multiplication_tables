@@ -6,12 +6,13 @@ import { applyPlacementAnswer } from '../engine/placement';
 import { availableBoss } from '../engine/progress';
 import { addActiveSeconds } from '../engine/stats';
 import type { AnswerInput, Day, FactId, PlanetId } from '../engine/types';
-import { createFreshSave } from '../storage/save';
+import { createFreshSave, playFacts } from '../storage/save';
+import { skipTablesOf, toggleSkip } from '../skip';
 import type { LoadResult, LoadStatus, SaveData } from '../storage/save';
 
 export type Screen =
   | 'welcome' | 'systemsCheck' | 'map' | 'mission' | 'freeFlight'
-  | 'starMap' | 'hangar' | 'parentGate' | 'parent';
+  | 'starMap' | 'hangar' | 'tables' | 'parentGate' | 'parent';
 
 export interface GameState {
   save: SaveData | null;
@@ -32,6 +33,7 @@ export type GameAction =
   | { type: 'markCelebrated'; planet?: PlanetId; galaxyMaster?: boolean }
   | { type: 'toggleSound' }
   | { type: 'setDifficulty'; difficulty: Difficulty }
+  | { type: 'toggleSkipTable'; table: number }
   | { type: 'navigate'; screen: Screen }
   | { type: 'importSave'; save: SaveData }
   | { type: 'resetProgress' }
@@ -45,6 +47,7 @@ const RESTORABLE: Partial<Record<string, Screen>> = {
   freeFlight: 'freeFlight',
   starMap: 'starMap',
   hangar: 'hangar',
+  tables: 'tables',
   parentGate: 'parentGate',
   parent: 'parentGate',
 };
@@ -126,7 +129,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return withSave({ mission: missionForToday(save.mission, action.today) });
     case 'advanceMission': {
       const m = missionForToday(save.mission, action.today);
-      const bossAvailable = availableBoss(save.facts, save.bossesBeaten) !== null;
+      const bossAvailable = availableBoss(playFacts(save), save.bossesBeaten) !== null;
       let next = advanceMission(m, bossAvailable);
       if (action.summary || action.bossWon) {
         const t = m.tally ?? { answered: 0, lightning: 0, bossWon: null };
@@ -166,6 +169,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case 'toggleSound':
       return withSave({ settings: { ...save.settings, soundOn: !save.settings.soundOn } });
+    case 'toggleSkipTable': {
+      const skip = skipTablesOf(save.settings);
+      const next = toggleSkip(skip, action.table);
+      if (next === skip) return state;
+      return withSave({ settings: { ...save.settings, skipTables: [...next] } });
+    }
     case 'setDifficulty':
       if (difficultyOf(save.settings) === action.difficulty && save.settings.difficulty) return state;
       return withSave({ settings: { ...save.settings, difficulty: action.difficulty } });

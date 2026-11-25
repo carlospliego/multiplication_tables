@@ -128,3 +128,34 @@ test('export, reset, then restore from the Welcome screen', async ({ page }) => 
   await page.getByRole('button', { name: 'Restore', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Captain Zoe' })).toBeVisible();
 });
+
+test('the child skips and restores tables', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel("What's your name, Captain?").fill('Ivy');
+  await page.getByRole('button', { name: 'Launch!' }).click();
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('ttr.save') as string);
+    s.placementDone = true;
+    s.celebrated.planetsUnlocked = [3];
+    localStorage.setItem('ttr.save', JSON.stringify(s));
+  });
+  await page.reload();
+  await expect(page.getByText('0 of 28 facts mastered')).toBeVisible();
+  await expect(page.getByText('Twinara ×2')).toBeHidden();
+
+  await page.getByRole('button', { name: 'Tables' }).click();
+  const tables = page.getByRole('group', { name: 'Times tables to practise' });
+  await tables.getByRole('button', { name: '×2', exact: true }).click();
+  await expect(tables.getByRole('button', { name: '×2', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await tables.getByRole('button', { name: '×9', exact: true }).click();
+  await expect(page.getByText('7 tables on, 28 facts to practise.')).toBeVisible();
+
+  // The choice is saved: it survives a reload, and the map follows it.
+  await page.reload();
+  await expect(tables.getByRole('button', { name: '×9', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('button', { name: 'Back to Galaxy' }).click();
+  await expect(page.getByText('Twinara ×2')).toBeVisible();
+  await expect(page.getByText('Nonova ×9')).toBeHidden();
+  const raw = await page.evaluate(() => localStorage.getItem('ttr.save'));
+  expect(JSON.parse(raw as string).settings.skipTables).toEqual([1, 9]);
+});

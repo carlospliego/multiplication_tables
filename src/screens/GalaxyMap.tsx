@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
 import { DIFFICULTIES, DIFFICULTY, difficultyOf } from '../engine/difficulty';
-import { ACTIVE_PLANETS, FACT_COUNT, FIRST_PLANET, PLANETS, shipParts } from '../engine/facts';
+import { activePlanets, PLANETS, shipParts } from '../engine/facts';
+import { playFacts } from '../storage/save';
 import { displayStreak, isMissionDoneToday } from '../engine/mission';
 import { availableBoss, frontierPlanet, masteredCount, openPlanets } from '../engine/progress';
 import type { PlanetId } from '../engine/types';
@@ -17,12 +18,15 @@ import styles from './GalaxyMap.module.css';
 // Points (percent of the map box) for the winding path, top to bottom: one per planet in play,
 // zig-zagging left and right and spread evenly down the map.
 const XS = [25, 72, 28, 70, 30, 72, 28, 70, 40];
-const POINTS: readonly { x: number; y: number }[] = ACTIVE_PLANETS.map((_, i, all) => ({
-  x: i === all.length - 1 && all.length > 1 ? 40 : XS[i]!,
-  y: all.length === 1 ? 50 : 6 + (88 * i) / (all.length - 1),
-}));
-const PATH_D = (() => {
-  const p = POINTS.map((q) => [q.x, q.y * 2] as const); // viewBox is 100 x 200
+function pathPoints(n: number): { x: number; y: number }[] {
+  return Array.from({ length: n }, (_, i) => ({
+    x: i === n - 1 && n > 1 ? 40 : XS[i]!,
+    y: n === 1 ? 50 : 6 + (88 * i) / (n - 1),
+  }));
+}
+function pathD(points: readonly { x: number; y: number }[]): string {
+  const p = points.map((q) => [q.x, q.y * 2] as const); // viewBox is 100 x 200
+  if (p.length === 0) return '';
   let d = `M${p[0]![0]} ${p[0]![1]}`;
   for (let i = 1; i < p.length; i++) {
     const [px, py] = p[i - 1]!;
@@ -31,18 +35,22 @@ const PATH_D = (() => {
     d += ` C${px} ${my} ${x} ${my} ${x} ${y}`;
   }
   return d;
-})();
+}
 
 type Celebration = { kind: 'planet'; planet: PlanetId } | { kind: 'galaxyMaster' };
 
 export function GalaxyMap() {
   const { state, dispatch } = useGame();
   const save = state.save;
-  const open = save ? openPlanets(save.facts) : [];
+  // Only the facts in play: the child's skipped tables (Tables screen) are left out.
+  const facts = save ? playFacts(save) : {};
+  const planets = activePlanets(facts);
+  const factCount = Object.keys(facts).length;
+  const open = save ? openPlanets(facts) : [];
   const unmarked = save ? open.filter((p) => !save.celebrated.planetsUnlocked.includes(p)) : [];
-  const toCelebrate = unmarked.filter((p) => p !== FIRST_PLANET);
-  const mastered = save ? masteredCount(save.facts) : 0;
-  const masterPending = !!save && mastered === FACT_COUNT && !save.celebrated.galaxyMaster;
+  const toCelebrate = unmarked.filter((p) => p !== planets[0]?.id);
+  const mastered = save ? masteredCount(facts) : 0;
+  const masterPending = !!save && factCount > 0 && mastered === factCount && !save.celebrated.galaxyMaster;
 
   // Computed once on mount: at most one overlay at a time, highest newly opened planet first.
   const [queue, setQueue] = useState<Celebration[]>(() => {
@@ -75,11 +83,12 @@ export function GalaxyMap() {
 
   if (!save) return null;
   const done = isMissionDoneToday(save.mission, todayLocal());
-  const frontier = frontierPlanet(save.facts);
-  const boss = availableBoss(save.facts, save.bossesBeaten);
+  const frontier = frontierPlanet(facts);
+  const boss = availableBoss(facts, save.bossesBeaten);
+  const points = pathPoints(planets.length);
   const stateFor = (id: PlanetId): PlanetState =>
     save.bossesBeaten.includes(id) ? 'freed' : id === boss ? 'boss' : id === frontier ? 'frontier' : open.includes(id) ? 'open' : 'locked';
-  const parts = shipParts(save.bossesBeaten);
+  const parts = shipParts(save.bossesBeaten, facts);
   const difficulty = difficultyOf(save.settings);
   const current = queue[0];
 
@@ -90,13 +99,14 @@ export function GalaxyMap() {
         <Rocket parts={parts} size={56} />
         <div className={styles.greeting}>
           <h1 className={styles.title}>{`Captain ${save.captainName}`}</h1>
-          <p className={styles.sub}>{`${mastered} of ${FACT_COUNT} facts mastered`}</p>
+          <p className={styles.sub}>{`${mastered} of ${factCount} facts mastered`}</p>
         </div>
         <StreakFlame days={displayStreak(save.streak, todayLocal())} size={56} />
       </header>
       <nav className={styles.nav} aria-label="Menu">
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'starMap' })}>Star Map</button>
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'hangar' })}>Hangar</button>
+        <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'tables' })}>Tables</button>
         <button type="button" className={styles.nb} aria-pressed={save.settings.soundOn} onClick={() => dispatch({ type: 'toggleSound' })}>
           <span aria-hidden="true">{save.settings.soundOn ? '🔊 ' : '🔇 '}</span>
           <span className={styles.soundLabel}>Sound</span>
@@ -137,11 +147,11 @@ export function GalaxyMap() {
       )}
       <div className={styles.map}>
         <svg className={styles.path} viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <path d={PATH_D} fill="none" stroke="#35e0ff" strokeOpacity="0.45" strokeWidth="4" strokeDasharray="10 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d={pathD(points)} fill="none" stroke="#35e0ff" strokeOpacity="0.45" strokeWidth="4" strokeDasharray="10 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </svg>
         <ul className={styles.stops}>
-        {ACTIVE_PLANETS.map((p, i) => {
-          const pt = POINTS[i]!;
+        {planets.map((p, i) => {
+          const pt = points[i]!;
           const s = stateFor(p.id);
           return (
             <li key={p.id} className={styles.stop} data-planet={p.id} data-state={s} style={{ left: `${pt.x}%`, top: `${pt.y}%` }}>
@@ -158,7 +168,7 @@ export function GalaxyMap() {
             <h2 id="celebrate-title" className={styles.cardTitle}>
               {current.kind === 'planet' ? `New planet detected: ${PLANETS[current.planet - 1]!.name}!` : 'Galaxy Master'}
             </h2>
-            {current.kind === 'galaxyMaster' && <p>You know all {FACT_COUNT} star facts. Amazing, Captain!</p>}
+            {current.kind === 'galaxyMaster' && <p>You know all {factCount} star facts. Amazing, Captain!</p>}
             <button type="button" className={styles.primary} ref={okRef} onClick={() => setQueue((q) => q.slice(1))}>OK</button>
           </div>
         </div>

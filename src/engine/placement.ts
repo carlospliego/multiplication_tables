@@ -1,15 +1,16 @@
 import { addDays } from './dates';
-import { PLANETS, makeQuestion } from './facts';
+import { makeQuestion, planetFactIds } from './facts';
 import { INTERVAL_DAYS, isFastAnswer } from './levels';
 import { shuffle } from './rng';
-import type { AnswerInput, Day, FactRecord, Level, PlanetId, Question, Rng } from './types';
+import type { AnswerInput, Day, FactRecord, Facts, Level, PlanetId, Question, Rng } from './types';
 
-/** The tables he already knew (×1, ×2, ×5); skipped tables drop out, leaving ×5's facts. */
+/** The tables he already knew (×1, ×2, ×5); skipped tables drop out (with ×1, ×2 skipped: ×5's facts). */
 export const PLACEMENT_PLANETS: readonly PlanetId[] = [1, 2, 3];
 const MAX_COUNTED_MS = 30000;
 
-export function placementQuestions(rng: Rng): Question[] {
-  const ids = PLACEMENT_PLANETS.flatMap((p) => PLANETS[p - 1]!.factIds);
+/** `facts` is the facts in play (see factsInPlay). */
+export function placementQuestions(facts: Facts, rng: Rng): Question[] {
+  const ids = PLACEMENT_PLANETS.flatMap((p) => planetFactIds(p, facts));
   return shuffle(ids, rng).map((id) => makeQuestion(id, rng, 'normal'));
 }
 

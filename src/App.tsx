@@ -10,6 +10,7 @@ import { MissionScreen } from './screens/MissionScreen';
 import { ParentGate } from './screens/ParentGate';
 import { StarMap } from './screens/StarMap';
 import { SystemsCheck } from './screens/SystemsCheck';
+import { Tables } from './screens/Tables';
 import { Welcome } from './screens/Welcome';
 
 export const GAME_TITLE = 'Times Table Rocket';
@@ -51,6 +52,8 @@ function Screens() {
       return <StarMap />;
     case 'hangar':
       return <Hangar />;
+    case 'tables':
+      return <Tables />;
     case 'parentGate':
       return <ParentGateRoute />;
     case 'parent':

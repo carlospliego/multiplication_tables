@@ -1,6 +1,7 @@
 import { DEFAULT_DIFFICULTY, isDifficulty } from '../engine/difficulty';
 import type { Difficulty } from '../engine/difficulty';
-import { STORED_FACT_IDS } from '../engine/facts';
+import { ALL_FACT_IDS, factsInPlay } from '../engine/facts';
+import { isSkipList, skipTablesOf } from '../skip';
 import { newFactRecord } from '../engine/levels';
 import type { MissionState, Streak } from '../engine/mission';
 import type { Day, FactRecord, Facts, PlanetId } from '../engine/types';
@@ -13,13 +14,17 @@ export interface SaveData {
   captainName: string;
   createdAt: string; // ISO timestamp
   placementDone: boolean;
-  facts: Facts; // all 45 always present, including skipped ones (see src/skip.ts)
+  facts: Facts; // all 45 always present, including skipped ones; read them with playFacts()
   bossesBeaten: PlanetId[];
   streak: Streak;
   mission: MissionState | null;
   dailyActiveSeconds: Record<Day, number>; // last 60 days
   /** difficulty is absent in saves made before it existed; read it with difficultyOf(). */
-  settings: { soundOn: boolean; difficulty?: Difficulty };
+  /**
+   * skipTables: the child's own skip list from the Tables screen; absent means the repo default
+   * (src/skip.ts). Read it with skipTablesOf().
+   */
+  settings: { soundOn: boolean; difficulty?: Difficulty; skipTables?: number[] };
   celebrated: { planetsUnlocked: PlanetId[]; galaxyMaster: boolean };
 }
 
@@ -35,7 +40,7 @@ const STEPS = ['warmup', 'quest1', 'quest2', 'quest3', 'boss', 'complete'];
 
 export function createFreshSave(captainName: string, nowIso: string): SaveData {
   const facts: Facts = {};
-  for (const id of STORED_FACT_IDS) facts[id] = newFactRecord();
+  for (const id of ALL_FACT_IDS) facts[id] = newFactRecord();
   return {
     schemaVersion: 1,
     captainName,
@@ -112,8 +117,8 @@ export function validateSave(raw: unknown): SaveData | null {
 
   if (!isRecord(raw.facts)) return null;
   const keys = Object.keys(raw.facts);
-  if (keys.length !== STORED_FACT_IDS.length) return null;
-  for (const id of STORED_FACT_IDS) {
+  if (keys.length !== ALL_FACT_IDS.length) return null;
+  for (const id of ALL_FACT_IDS) {
     if (!Object.prototype.hasOwnProperty.call(raw.facts, id) || !validFact(raw.facts[id]))
       return null;
   }
@@ -147,6 +152,8 @@ export function validateSave(raw: unknown): SaveData | null {
   if (!isRecord(raw.settings) || typeof raw.settings.soundOn !== 'boolean') return null;
   // Optional (older saves lack it); an unknown value is dropped rather than rejecting the save.
   if ('difficulty' in raw.settings && !isDifficulty(raw.settings.difficulty)) delete raw.settings.difficulty;
+  // Optional too; an invalid list falls back to the repo default.
+  if ('skipTables' in raw.settings && !isSkipList(raw.settings.skipTables)) delete raw.settings.skipTables;
 
   const c = raw.celebrated;
   if (!isRecord(c) || !isPlanetList(c.planetsUnlocked) || typeof c.galaxyMaster !== 'boolean')
@@ -203,4 +210,9 @@ export function writeSave(storage: Storage | null, save: SaveData): boolean {
   } catch {
     return false;
   }
+}
+
+/** The save's facts that are in play: every fact minus the skipped tables (src/skip.ts). */
+export function playFacts(save: SaveData): Facts {
+  return factsInPlay(save.facts, skipTablesOf(save.settings));
 }

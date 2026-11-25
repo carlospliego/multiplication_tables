@@ -1,19 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
-// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
-vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+import { describe, expect, it } from 'vitest';
 
 import { addDays } from './dates';
 import { PLANETS } from './facts';
 import { newFactRecord } from './levels';
 import { PLACEMENT_PLANETS, applyPlacementAnswer, placementQuestions } from './placement';
 import { createRng } from './rng';
+import { makeFacts } from './progress';
 
 const T = '2026-11-02';
 
 describe('placement', () => {
   it('asks exactly the facts of planets 1-3', () => {
     expect(PLACEMENT_PLANETS).toEqual([1, 2, 3]);
-    const qs = placementQuestions(createRng(1));
+    const qs = placementQuestions(makeFacts(), createRng(1));
     expect(qs).toHaveLength(24);
     const expected = PLACEMENT_PLANETS.flatMap((p) => PLANETS[p - 1]!.factIds).sort();
     expect(qs.map((q) => q.factId).sort()).toEqual(expected);

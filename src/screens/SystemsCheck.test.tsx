@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
-vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+// These tests cover the full game rules, so saves skip nothing here (see src/skip.test.tsx).
+vi.mock('../skip', () => import('../testing/skipNothing').then((m) => m.skipNothing()));
 
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { createFreshSave } from '../storage/save';
+
 const dispatch = vi.fn();
-vi.mock('../state/GameContext', () => ({ useGame: () => ({ state: null, dispatch }) }));
+const save = createFreshSave('Ada', '2026-11-02T10:00:00.000Z');
+vi.mock('../state/GameContext', () => ({ useGame: () => ({ state: { save }, dispatch }) }));
 import { SystemsCheck } from './SystemsCheck';
 
 let user: ReturnType<typeof userEvent.setup>;
