@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { todayLocal } from '../engine/dates';
 import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
-import { PLANETS } from '../engine/facts';
+import { shipParts } from '../engine/facts';
 import { missionForToday } from '../engine/mission';
 import type { MissionStep } from '../engine/mission';
 import { createRng } from '../engine/rng';
@@ -47,7 +47,7 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
     [dispatch],
   );
-  const parts = save.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart);
+  const parts = shipParts(save.bossesBeaten);
   const clearQuest = quest.clear;
   const onComplete = useCallback(
     (summary: Summary) => {

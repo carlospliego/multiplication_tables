@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { play } from '../audio/sfx';
 import { StreakFlame } from '../components/StreakFlame';
 import { todayLocal } from '../engine/dates';
-import { PLANETS } from '../engine/facts';
+import { FIRST_PLANET, PLANETS } from '../engine/facts';
 import { openPlanets } from '../engine/progress';
 import { useGame } from '../state/GameContext';
 import styles from './GalaxyMap.module.css';
@@ -28,7 +28,7 @@ export function MissionComplete() {
   const lightning = tally?.lightning ?? 0;
   const bossWon = tally?.bossWon ?? null;
   const unlocked = save
-    ? openPlanets(save.facts).filter((p) => p !== 1 && !save.celebrated.planetsUnlocked.includes(p))
+    ? openPlanets(save.facts).filter((p) => p !== FIRST_PLANET && !save.celebrated.planetsUnlocked.includes(p))
     : [];
   const streak = save?.streak.current ?? 0;
   const planet = bossWon ? PLANETS[bossWon - 1] : undefined;

@@ -22,6 +22,18 @@ Once the site is live (see "Deploying"):
 2. Tap **Share**, then **Add to Home Screen**, then **Add**.
 3. Open it once while online so it can save itself for offline use.
 
+## Skipped tables
+
+The ×1 and ×2 tables are left out of the game. The list lives in [`src/skip.ts`](src/skip.ts):
+
+```ts
+export const SKIP_TABLES: readonly number[] = [1, 2];
+```
+
+Any fact with a skipped number as either factor is never asked, counted or shown (so 2×7 is gone, 3×7 stays). That leaves 28 facts on 7 planets, starting at ×5. The Systems Check asks only the ×5 facts, and the parent grid shows 3 to 9.
+
+To change it, edit the list and redeploy. Saves still store every fact, so taking a number off the list brings that table back with its old progress.
+
 ## Difficulty
 
 On the Galaxy Map, pick **Easy**, **Normal** or **Hard**. The choice is saved with progress and can be changed at any time.

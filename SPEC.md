@@ -124,6 +124,13 @@ At ~6–8 s per question including feedback, this lands near 10 minutes.
   the same save, day, step and difficulty; otherwise the step starts fresh as above. The
   Grown-ups dashboard is restored as its parent gate. Boss battles and the Systems Check
   restart from their beginning.
+- **Skipped tables (added 2026-11-24):** `src/skip.ts` lists tables left out of the game,
+  currently `[1, 2]`. A fact with either factor in the list is never asked, counted, drawn or
+  unlocked, leaving 28 facts. Planets with no facts left (Launch Pad, Twinara) are removed from
+  the map, Hangar and unlock chain, so the game starts on Pentaro (×5); bosses already beaten
+  there no longer count or add ship parts. The Systems Check asks only ×5's 7 facts, the
+  Star Map draws 28 stars, and the parent grid shows 3-9. Saves keep all 45 facts, so older
+  saves and backups load unchanged and un-skipping a table restores its history.
 - **Difficulty (added 2026-11-23):** Easy / Normal / Hard, picked by the child on the Galaxy
   Map and stored in `settings.difficulty` (absent in older saves = Normal). It sets quest length
   (10 / 15 / 20; re-asks may grow a quest up to max(20, length + 5)) and the fast threshold used

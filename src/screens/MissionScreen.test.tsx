@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
+// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
+vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';

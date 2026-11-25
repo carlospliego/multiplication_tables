@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
 import { DIFFICULTIES, DIFFICULTY, difficultyOf } from '../engine/difficulty';
-import { PLANETS } from '../engine/facts';
+import { ACTIVE_PLANETS, FACT_COUNT, FIRST_PLANET, PLANETS, shipParts } from '../engine/facts';
 import { displayStreak, isMissionDoneToday } from '../engine/mission';
 import { availableBoss, frontierPlanet, masteredCount, openPlanets } from '../engine/progress';
 import type { PlanetId } from '../engine/types';
@@ -14,11 +14,13 @@ import { StreakFlame } from '../components/StreakFlame';
 import { useGame } from '../state/GameContext';
 import styles from './GalaxyMap.module.css';
 
-// Fixed points (percent of the map box) for the winding path, top to bottom.
-const POINTS: readonly { x: number; y: number }[] = [
-  { x: 25, y: 6 }, { x: 72, y: 17 }, { x: 28, y: 28 }, { x: 70, y: 39 }, { x: 30, y: 50 },
-  { x: 72, y: 61 }, { x: 28, y: 72 }, { x: 70, y: 83 }, { x: 40, y: 94 },
-];
+// Points (percent of the map box) for the winding path, top to bottom: one per planet in play,
+// zig-zagging left and right and spread evenly down the map.
+const XS = [25, 72, 28, 70, 30, 72, 28, 70, 40];
+const POINTS: readonly { x: number; y: number }[] = ACTIVE_PLANETS.map((_, i, all) => ({
+  x: i === all.length - 1 && all.length > 1 ? 40 : XS[i]!,
+  y: all.length === 1 ? 50 : 6 + (88 * i) / (all.length - 1),
+}));
 const PATH_D = (() => {
   const p = POINTS.map((q) => [q.x, q.y * 2] as const); // viewBox is 100 x 200
   let d = `M${p[0]![0]} ${p[0]![1]}`;
@@ -38,9 +40,9 @@ export function GalaxyMap() {
   const save = state.save;
   const open = save ? openPlanets(save.facts) : [];
   const unmarked = save ? open.filter((p) => !save.celebrated.planetsUnlocked.includes(p)) : [];
-  const toCelebrate = unmarked.filter((p) => p !== 1);
+  const toCelebrate = unmarked.filter((p) => p !== FIRST_PLANET);
   const mastered = save ? masteredCount(save.facts) : 0;
-  const masterPending = !!save && mastered === 45 && !save.celebrated.galaxyMaster;
+  const masterPending = !!save && mastered === FACT_COUNT && !save.celebrated.galaxyMaster;
 
   // Computed once on mount: at most one overlay at a time, highest newly opened planet first.
   const [queue, setQueue] = useState<Celebration[]>(() => {
@@ -77,7 +79,7 @@ export function GalaxyMap() {
   const boss = availableBoss(save.facts, save.bossesBeaten);
   const stateFor = (id: PlanetId): PlanetState =>
     save.bossesBeaten.includes(id) ? 'freed' : id === boss ? 'boss' : id === frontier ? 'frontier' : open.includes(id) ? 'open' : 'locked';
-  const parts = save.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart);
+  const parts = shipParts(save.bossesBeaten);
   const difficulty = difficultyOf(save.settings);
   const current = queue[0];
 
@@ -88,7 +90,7 @@ export function GalaxyMap() {
         <Rocket parts={parts} size={56} />
         <div className={styles.greeting}>
           <h1 className={styles.title}>{`Captain ${save.captainName}`}</h1>
-          <p className={styles.sub}>{`${mastered} of 45 facts mastered`}</p>
+          <p className={styles.sub}>{`${mastered} of ${FACT_COUNT} facts mastered`}</p>
         </div>
         <StreakFlame days={displayStreak(save.streak, todayLocal())} size={56} />
       </header>
@@ -138,7 +140,7 @@ export function GalaxyMap() {
           <path d={PATH_D} fill="none" stroke="#35e0ff" strokeOpacity="0.45" strokeWidth="4" strokeDasharray="10 10" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </svg>
         <ul className={styles.stops}>
-        {PLANETS.map((p, i) => {
+        {ACTIVE_PLANETS.map((p, i) => {
           const pt = POINTS[i]!;
           const s = stateFor(p.id);
           return (
@@ -156,7 +158,7 @@ export function GalaxyMap() {
             <h2 id="celebrate-title" className={styles.cardTitle}>
               {current.kind === 'planet' ? `New planet detected: ${PLANETS[current.planet - 1]!.name}!` : 'Galaxy Master'}
             </h2>
-            {current.kind === 'galaxyMaster' && <p>You know all 45 star facts. Amazing, Captain!</p>}
+            {current.kind === 'galaxyMaster' && <p>You know all {FACT_COUNT} star facts. Amazing, Captain!</p>}
             <button type="button" className={styles.primary} ref={okRef} onClick={() => setQueue((q) => q.slice(1))}>OK</button>
           </div>
         </div>
