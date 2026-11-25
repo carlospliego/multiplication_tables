@@ -1,6 +1,6 @@
 import { DEFAULT_DIFFICULTY, isDifficulty } from '../engine/difficulty';
 import type { Difficulty } from '../engine/difficulty';
-import { ALL_FACT_IDS } from '../engine/facts';
+import { STORED_FACT_IDS } from '../engine/facts';
 import { newFactRecord } from '../engine/levels';
 import type { MissionState, Streak } from '../engine/mission';
 import type { Day, FactRecord, Facts, PlanetId } from '../engine/types';
@@ -13,7 +13,7 @@ export interface SaveData {
   captainName: string;
   createdAt: string; // ISO timestamp
   placementDone: boolean;
-  facts: Facts; // all 45 always present
+  facts: Facts; // all 45 always present, including skipped ones (see src/skip.ts)
   bossesBeaten: PlanetId[];
   streak: Streak;
   mission: MissionState | null;
@@ -35,7 +35,7 @@ const STEPS = ['warmup', 'quest1', 'quest2', 'quest3', 'boss', 'complete'];
 
 export function createFreshSave(captainName: string, nowIso: string): SaveData {
   const facts: Facts = {};
-  for (const id of ALL_FACT_IDS) facts[id] = newFactRecord();
+  for (const id of STORED_FACT_IDS) facts[id] = newFactRecord();
   return {
     schemaVersion: 1,
     captainName,
@@ -112,8 +112,8 @@ export function validateSave(raw: unknown): SaveData | null {
 
   if (!isRecord(raw.facts)) return null;
   const keys = Object.keys(raw.facts);
-  if (keys.length !== ALL_FACT_IDS.length) return null;
-  for (const id of ALL_FACT_IDS) {
+  if (keys.length !== STORED_FACT_IDS.length) return null;
+  for (const id of STORED_FACT_IDS) {
     if (!Object.prototype.hasOwnProperty.call(raw.facts, id) || !validFact(raw.facts[id]))
       return null;
   }

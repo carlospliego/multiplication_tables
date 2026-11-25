@@ -5,7 +5,7 @@ import { useQuestSession } from '../hooks/useQuestSession';
 import { createRng } from '../engine/rng';
 import { buildQuest } from '../engine/scheduler';
 import type { AnswerInput, FactId, Question } from '../engine/types';
-import { PLANETS } from '../engine/facts';
+import { shipParts } from '../engine/facts';
 import { useGame } from '../state/GameContext';
 import { QuestScreen } from './QuestScreen';
 
@@ -45,7 +45,7 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
       title="Free Flight"
       queue={queue}
       rng={rng}
-      parts={save.bossesBeaten.map((p) => PLANETS[p - 1]!.shipPart)}
+      parts={shipParts(save.bossesBeaten)}
       fastMs={fastMs}
       initialRun={quest.initialRun}
       initialIntroduced={quest.initialIntroduced}

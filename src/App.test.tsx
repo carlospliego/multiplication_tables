@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { it, expect, beforeEach, vi } from 'vitest';
+// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
+vi.mock('./skip', () => ({ SKIP_TABLES: [] }));
+
 import { App } from './App';
 import { createFreshSave, SAVE_KEY } from './storage/save';
 

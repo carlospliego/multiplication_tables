@@ -22,6 +22,11 @@ export function SystemsCheck() {
 
   const q = questions[index];
 
+  // Every placement table skipped (src/skip.ts): nothing to check, go straight to the map.
+  useEffect(() => {
+    if (questions.length === 0) dispatch({ type: 'finishPlacement' });
+  }, [questions.length, dispatch]);
+
   const handleAnswer = (r: AnswerResult) => {
     if (!q || logged) return;
     const now = performance.now();

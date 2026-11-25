@@ -1,4 +1,4 @@
-import { factId } from '../engine/facts';
+import { ACTIVE_NUMBERS, factId } from '../engine/facts';
 import type { FactId, Facts, Level } from '../engine/types';
 import styles from './FactGrid.module.css';
 
@@ -12,7 +12,8 @@ export const LEVEL_NAME: Record<Level, string> = {
   5: 'Mastered',
 };
 
-const NUMS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+/** Rows and columns: 1-9 minus the skipped tables (src/skip.ts). */
+const NUMS = ACTIVE_NUMBERS;
 const LEGEND: { level: Level; label: string }[] = [
   { level: 0, label: 'New' },
   { level: 1, label: 'Learning' },

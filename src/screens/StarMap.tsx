@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ALL_FACT_IDS, parseFact } from '../engine/facts';
+import { ALL_FACT_IDS, FACT_COUNT, parseFact } from '../engine/facts';
 import { masteredCount, starStates } from '../engine/progress';
 import type { StarState } from '../engine/progress';
 import type { FactId } from '../engine/types';
@@ -47,7 +47,7 @@ export function StarMap() {
     <main className={styles.screen}>
       <Starfield />
       <h1 className={styles.title}>Star Map</h1>
-      <p className={styles.counter}>{`★ ${lit} / 45 stars lit`}</p>
+      <p className={styles.counter}>{`★ ${lit} / ${FACT_COUNT} stars lit`}</p>
       <div className={styles.body}>
         <div className={styles.sky} role="group" aria-label="Rocket constellation">
           {ALL_FACT_IDS.map((id) => {

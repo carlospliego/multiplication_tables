@@ -13,8 +13,8 @@ async function answerQuestion(page: Page): Promise<void> {
 }
 
 test('first launch to first quest', async ({ page }) => {
-  // 24 placement answers plus the warm-up take ~40s of real UI time (feedback pauses
-  // included), well over Playwright's 30s default.
+  // 7 placement answers (×1 and ×2 are skipped, see src/skip.ts) plus the warm-up, with
+  // feedback pauses and a reload; allow well over Playwright's 30s default.
   test.setTimeout(120_000);
 
   await page.goto('/');
@@ -22,11 +22,11 @@ test('first launch to first quest', async ({ page }) => {
   await page.getByRole('button', { name: 'Launch!' }).click();
 
   await expect(page.getByRole('heading', { name: 'Systems Check' })).toBeVisible();
-  for (let i = 1; i <= 24; i++) {
-    await expect(page.getByText(`${i} / 24`, { exact: true })).toBeVisible();
+  for (let i = 1; i <= 7; i++) {
+    await expect(page.getByText(`${i} / 7`, { exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Question' })).toBeVisible();
     await answerQuestion(page);
-    if (i < 24) await expect(page.getByRole('status')).toHaveText('logged!');
+    if (i < 7) await expect(page.getByRole('status')).toHaveText('logged!');
   }
 
   await expect(page.getByRole('heading', { name: 'Captain Leo' })).toBeVisible();
@@ -71,7 +71,7 @@ test('parent gate opens dashboard', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel("What's your name, Captain?").fill('Mia');
   await page.getByRole('button', { name: 'Launch!' }).click();
-  // Seed a finished placement so the map is reachable without 24 answers.
+  // Seed a finished placement so the map is reachable without answering the Systems Check.
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('ttr.save') as string);
     s.placementDone = true;
@@ -90,7 +90,7 @@ test('parent gate opens dashboard', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: 'Grown-ups' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Facts' })).toBeVisible();
-  await expect(page.locator('section[aria-labelledby="grid-title"] button')).toHaveCount(81);
+  await expect(page.locator('section[aria-labelledby="grid-title"] button')).toHaveCount(49); // 3-9 only: ×1 and ×2 are skipped
 });
 
 test('export, reset, then restore from the Welcome screen', async ({ page }) => {

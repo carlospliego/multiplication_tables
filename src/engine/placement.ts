@@ -4,6 +4,7 @@ import { INTERVAL_DAYS, isFastAnswer } from './levels';
 import { shuffle } from './rng';
 import type { AnswerInput, Day, FactRecord, Level, PlanetId, Question, Rng } from './types';
 
+/** The tables he already knew (×1, ×2, ×5); skipped tables drop out, leaving ×5's facts. */
 export const PLACEMENT_PLANETS: readonly PlanetId[] = [1, 2, 3];
 const MAX_COUNTED_MS = 30000;
 

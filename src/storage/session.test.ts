@@ -14,7 +14,7 @@ import type { QuestContext } from './session';
 
 const mk = (a: number, b: number): Question => ({ factId: `${Math.min(a, b)}x${Math.max(a, b)}`, a, b, answer: a * b, kind: 'normal' });
 const ctx: QuestContext = { kind: 'mission', owner: '2026-11-02T10:00:00.000Z', day: '2026-11-23', step: 'quest1', difficulty: 'normal' };
-const run = recordQuestResult(startQuestRun([mk(2, 3), mk(4, 3), mk(5, 5)]), true, true, () => 0);
+const run = recordQuestResult(startQuestRun([mk(3, 6), mk(4, 3), mk(5, 5)]), true, true, () => 0);
 
 describe('session screen', () => {
   it('round trips and tolerates a missing store', () => {
@@ -30,10 +30,10 @@ describe('session screen', () => {
 describe('quest snapshot', () => {
   it('round trips for the same context', () => {
     const s = getSessionStorage();
-    writeQuestSnapshot(s, { context: ctx, run, introduced: ['2x3'] });
+    writeQuestSnapshot(s, { context: ctx, run, introduced: ['3x6'] });
     const snap = loadQuestSnapshot(s, { ...ctx });
     expect(snap?.run).toEqual(run);
-    expect(snap?.introduced).toEqual(['2x3']);
+    expect(snap?.introduced).toEqual(['3x6']);
   });
 
   it('is ignored when the save, day, step, kind or difficulty differ', () => {
@@ -54,8 +54,10 @@ describe('quest snapshot', () => {
     };
     expect(bad({})).not.toBeNull();
     expect(bad({ run: { ...run, index: 99 } })).toBeNull();
-    expect(bad({ run: { ...run, queue: [{ ...mk(2, 3), answer: 7 }] } })).toBeNull();
+    expect(bad({ run: { ...run, queue: [{ ...mk(3, 6), answer: 7 }] } })).toBeNull();
     expect(bad({ run: { ...run, queue: [mk(10, 10)] } })).toBeNull();
+    // a skipped fact (src/skip.ts) is not in play, so a quest holding one is not resumed
+    expect(bad({ run: { ...run, queue: [mk(2, 7)] } })).toBeNull();
     expect(bad({ run: { ...run, lightning: 5 } })).toBeNull();
     expect(bad({ introduced: ['nope'] })).toBeNull();
     s.setItem(SESSION_QUEST_KEY, '{not json');

@@ -3,7 +3,7 @@ import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
 import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
-import { parseFact } from '../engine/facts';
+import { activeBossesBeaten, FACT_COUNT, parseFact } from '../engine/facts';
 import { displayStreak } from '../engine/mission';
 import { masteredCount } from '../engine/progress';
 import { factStats, lastNDays } from '../engine/stats';
@@ -65,11 +65,11 @@ export function ParentDashboard() {
 
       <section className={styles.panel} aria-labelledby="summary-title">
         <h2 id="summary-title" className={styles.h2}>Summary</h2>
-        <p className={styles.stars}>{`★ ${masteredCount(save.facts)} / 45`}</p>
+        <p className={styles.stars}>{`★ ${masteredCount(save.facts)} / ${FACT_COUNT}`}</p>
         <dl className={styles.stats}>
           <div><dt>Current streak</dt><dd>{displayStreak(save.streak, today)}</dd></div>
           <div><dt>Best streak</dt><dd>{save.streak.best}</dd></div>
-          <div><dt>Planets freed</dt><dd>{save.bossesBeaten.length}</dd></div>
+          <div><dt>Planets freed</dt><dd>{activeBossesBeaten(save.bossesBeaten).length}</dd></div>
           <div><dt>Difficulty</dt><dd>{level.label}</dd></div>
         </dl>
         <p className={`${styles.note} ${styles.difficultyNote}`}>
