@@ -1,4 +1,4 @@
-import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
+import { DIFFICULTY, difficultyOf, enabledDifficulties } from '../engine/difficulty';
 import type { Difficulty } from '../engine/difficulty';
 import { applyAnswer } from '../engine/levels';
 import { advanceMission, applyMissionComplete, missionForToday } from '../engine/mission';
@@ -176,6 +176,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return withSave({ settings: { ...save.settings, skipTables: [...next] } });
     }
     case 'setDifficulty':
+      if (!enabledDifficulties().includes(action.difficulty)) return state;
       if (difficultyOf(save.settings) === action.difficulty && save.settings.difficulty) return state;
       return withSave({ settings: { ...save.settings, difficulty: action.difficulty } });
   }

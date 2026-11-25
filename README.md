@@ -38,15 +38,15 @@ Saves always keep every fact, so bringing a table back restores its old progress
 
 ## Difficulty
 
-On the Galaxy Map, pick **Easy**, **Normal** or **Hard**. The choice is saved with progress and can be changed at any time.
+Everyone plays on **Hard**: quests have 20 questions, and an answer counts as fast (⚡ Lightning, and toward mastery) within 3 seconds. The warm-up (5 questions) and boss battles are the same at every level.
 
-| Level | Questions per quest | Counts as a fast answer |
-|---|---|---|
-| Easy | 10 | within 6 seconds |
-| Normal | 15 | within 4 seconds |
-| Hard | 20 | within 3 seconds |
+Easy (10 questions, 6 seconds) and Normal (15 questions, 4 seconds) still exist but are switched off in [`src/enabledDifficulties.ts`](src/enabledDifficulties.ts):
 
-Fast answers earn the ⚡ Lightning burst and count toward mastery, so a fact is mastered sooner on Easy and later on Hard. The warm-up (5 questions) and boss battles are the same at every level. The Grown-ups area shows the current level.
+```ts
+export const ENABLED_DIFFICULTIES: readonly Difficulty[] = ['hard'];
+```
+
+Add `'easy'` and `'normal'` back to bring the Easy / Normal / Hard picker back to the Galaxy Map. With only one level enabled the picker is hidden. A level chosen earlier is kept in the save and used again once it is enabled. The Grown-ups area shows the current level.
 
 ## Progress and backups
 

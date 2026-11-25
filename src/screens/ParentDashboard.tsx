@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
-import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
+import { DIFFICULTY, difficultyOf, enabledDifficulties } from '../engine/difficulty';
 import { activeBossesBeaten, activeNumbers, parseFact } from '../engine/facts';
 import { skipTablesOf } from '../skip';
 import { displayStreak } from '../engine/mission';
@@ -78,7 +78,7 @@ export function ParentDashboard() {
           <div><dt>Difficulty</dt><dd>{level.label}</dd></div>
         </dl>
         <p className={`${styles.note} ${styles.difficultyNote}`}>
-          {`On ${level.label}, quests have ${level.questSize} questions and an answer counts as fast (toward mastery) within ${level.fastMs / 1000} seconds. Your child can change this on the map.`}
+          {`On ${level.label}, quests have ${level.questSize} questions and an answer counts as fast (toward mastery) within ${level.fastMs / 1000} seconds. ${enabledDifficulties().length > 1 ? 'Your child can change this on the map.' : 'This is the only level offered.'}`}
         </p>
       </section>
 

@@ -135,6 +135,10 @@ At ~6–8 s per question including feedback, this lands near 10 minutes.
   planets 1-3, the Star Map draws one star per fact, the parent grid shows the numbers in play.
   Saves keep all 45 facts, so un-skipping restores history. A resumed session quest must match
   the current skip list.
+- **Hard only (added 2026-11-25):** `src/enabledDifficulties.ts` lists the levels offered,
+  currently `['hard']`. Every save plays on an enabled level (its own choice if enabled, else
+  Normal if enabled, else the hardest enabled), picking a disabled level is ignored, and the
+  map picker is hidden when only one level is enabled. The stored choice is left untouched.
 - **Difficulty (added 2026-11-23):** Easy / Normal / Hard, picked by the child on the Galaxy
   Map and stored in `settings.difficulty` (absent in older saves = Normal). It sets quest length
   (10 / 15 / 20; re-asks may grow a quest up to max(20, length + 5)) and the fast threshold used
