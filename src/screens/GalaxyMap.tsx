@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { play } from '../audio/sfx';
 import { todayLocal } from '../engine/dates';
-import { DIFFICULTIES, DIFFICULTY, difficultyOf } from '../engine/difficulty';
+import { DIFFICULTY, difficultyOf, enabledDifficulties } from '../engine/difficulty';
 import { activePlanets, PLANETS, shipParts } from '../engine/facts';
 import { playFacts } from '../storage/save';
 import { displayStreak, isMissionDoneToday } from '../engine/mission';
@@ -90,6 +90,7 @@ export function GalaxyMap() {
     save.bossesBeaten.includes(id) ? 'freed' : id === boss ? 'boss' : id === frontier ? 'frontier' : open.includes(id) ? 'open' : 'locked';
   const parts = shipParts(save.bossesBeaten, facts);
   const difficulty = difficultyOf(save.settings);
+  const levels = enabledDifficulties();
   const current = queue[0];
 
   return (
@@ -113,21 +114,24 @@ export function GalaxyMap() {
         </button>
         <button type="button" className={styles.nb} onClick={() => dispatch({ type: 'navigate', screen: 'parentGate' })}>Grown-ups</button>
       </nav>
-      <div className={styles.difficulty} role="group" aria-labelledby="difficulty-label">
-        <span id="difficulty-label" className={styles.difficultyLabel}>Difficulty</span>
-        {DIFFICULTIES.map((d) => (
-          <button
-            key={d}
-            type="button"
-            className={styles.level}
-            aria-pressed={difficulty === d}
-            onClick={() => dispatch({ type: 'setDifficulty', difficulty: d })}
-          >
-            {DIFFICULTY[d].label}
-            <span className={styles.levelHint}>{`${DIFFICULTY[d].questSize} questions`}</span>
-          </button>
-        ))}
-      </div>
+      {/* Only offered when more than one level is enabled (src/enabledDifficulties.ts). */}
+      {levels.length > 1 && (
+        <div className={styles.difficulty} role="group" aria-labelledby="difficulty-label">
+          <span id="difficulty-label" className={styles.difficultyLabel}>Difficulty</span>
+          {levels.map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={styles.level}
+              aria-pressed={difficulty === d}
+              onClick={() => dispatch({ type: 'setDifficulty', difficulty: d })}
+            >
+              {DIFFICULTY[d].label}
+              <span className={styles.levelHint}>{`${DIFFICULTY[d].questSize} questions`}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {done ? (
         <button type="button" className={styles.primary} onClick={() => dispatch({ type: 'navigate', screen: 'freeFlight' })}>
           Free Flight

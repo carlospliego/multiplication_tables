@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+// These tests cover choosing a level, so all three are offered here (see src/enabledDifficulties.test.tsx).
+vi.mock('../enabledDifficulties', () => ({ ENABLED_DIFFICULTIES: ['easy', 'normal', 'hard'] }));
+
 // These tests cover the full game rules, so saves skip nothing here (see src/skip.test.tsx).
 vi.mock('../skip', () => import('../testing/skipNothing').then((m) => m.skipNothing()));
 

@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+// These tests cover choosing a level, so all three are offered here (see src/enabledDifficulties.test.tsx).
+vi.mock('../enabledDifficulties', () => ({ ENABLED_DIFFICULTIES: ['easy', 'normal', 'hard'] }));
+
 import { DIFFICULTIES, DIFFICULTY, difficultyOf, isDifficulty } from './difficulty';
 import { FAST_MS } from './levels';
 import { QUEST_SIZE } from './scheduler';

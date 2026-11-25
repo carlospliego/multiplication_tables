@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// These tests cover choosing a level, so all three are offered here (see src/enabledDifficulties.test.tsx).
+vi.mock('../enabledDifficulties', () => ({ ENABLED_DIFFICULTIES: ['easy', 'normal', 'hard'] }));
+
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ALL_FACT_IDS } from '../engine/facts';
