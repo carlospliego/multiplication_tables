@@ -1,4 +1,4 @@
-import { ACTIVE_NUMBERS, factId } from '../engine/facts';
+import { factId } from '../engine/facts';
 import type { FactId, Facts, Level } from '../engine/types';
 import styles from './FactGrid.module.css';
 
@@ -12,8 +12,7 @@ export const LEVEL_NAME: Record<Level, string> = {
   5: 'Mastered',
 };
 
-/** Rows and columns: 1-9 minus the skipped tables (src/skip.ts). */
-const NUMS = ACTIVE_NUMBERS;
+const ALL_NUMS: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const LEGEND: { level: Level; label: string }[] = [
   { level: 0, label: 'New' },
   { level: 1, label: 'Learning' },
@@ -26,9 +25,12 @@ export interface FactGridProps {
   facts: Facts;
   onSelect(id: FactId): void;
   selected?: FactId | null;
+  /** Rows and columns to show: 1-9 minus the skipped tables. */
+  numbers?: readonly number[];
 }
 
-export function FactGrid({ facts, onSelect, selected = null }: FactGridProps) {
+export function FactGrid({ facts, onSelect, selected = null, numbers = ALL_NUMS }: FactGridProps) {
+  const NUMS = numbers;
   return (
     <div className={styles.wrap}>
       <table className={styles.grid}>

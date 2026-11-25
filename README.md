@@ -24,15 +24,17 @@ Once the site is live (see "Deploying"):
 
 ## Skipped tables
 
-The ×1 and ×2 tables are left out of the game. The list lives in [`src/skip.ts`](src/skip.ts):
+Your child can choose which times tables to practise. On the Galaxy Map, tap **Tables**, then tap a table to skip it or tap it again to bring it back. At least 3 tables always stay on. The choice is saved with progress.
+
+Any fact with a skipped number as either factor is never asked, counted or shown (skip ×2 and 2×7 is gone, but 3×7 stays). Planets with no facts left disappear from the map. The Grown-ups area lists the skipped tables, and its grid shows only the numbers in play.
+
+The starting list for new players, and for anyone who has never changed it, lives in [`src/skip.ts`](src/skip.ts):
 
 ```ts
-export const SKIP_TABLES: readonly number[] = [1, 2];
+export const DEFAULT_SKIP_TABLES: readonly number[] = [1, 2];
 ```
 
-Any fact with a skipped number as either factor is never asked, counted or shown (so 2×7 is gone, 3×7 stays). That leaves 28 facts on 7 planets, starting at ×5. The Systems Check asks only the ×5 facts, and the parent grid shows 3 to 9.
-
-To change it, edit the list and redeploy. Saves still store every fact, so taking a number off the list brings that table back with its old progress.
+Saves always keep every fact, so bringing a table back restores its old progress.
 
 ## Difficulty
 

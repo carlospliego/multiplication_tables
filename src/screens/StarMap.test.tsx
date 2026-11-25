@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
-vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+// These tests cover the full game rules, so saves skip nothing here (see src/skip.test.tsx).
+vi.mock('../skip', () => import('../testing/skipNothing').then((m) => m.skipNothing()));
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -8,7 +8,7 @@ import type { GameState } from '../state/gameReducer';
 import { createFreshSave } from '../storage/save';
 import { makeFacts } from '../engine/progress';
 import { ALL_FACT_IDS } from '../engine/facts';
-import { STAR_POSITIONS } from './starLayout';
+import { starPositions } from './starLayout';
 
 const dispatch = vi.fn();
 let state: GameState;
@@ -26,7 +26,7 @@ describe('starLayout', () => {
   it('has a distinct position inside the viewBox for all 45 facts', () => {
     const seen = new Set<string>();
     for (const id of ALL_FACT_IDS) {
-      const p = STAR_POSITIONS[id];
+      const p = starPositions(ALL_FACT_IDS)[id];
       expect(p, id).toBeDefined();
       expect(p!.x).toBeGreaterThanOrEqual(0);
       expect(p!.x).toBeLessThanOrEqual(100);

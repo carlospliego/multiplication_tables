@@ -10,6 +10,8 @@ import { availableBoss } from '../engine/progress';
 import type { AnswerInput, FactId, PlanetId, Question } from '../engine/types';
 import { useQuestSession } from '../hooks/useQuestSession';
 import { useGame } from '../state/GameContext';
+import { playFacts } from '../storage/save';
+import { skipTablesOf } from '../skip';
 import { BossScreen } from './BossScreen';
 import { MissionComplete } from './MissionComplete';
 import { QuestScreen } from './QuestScreen';
@@ -33,12 +35,13 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
   // mount (the parent keys this component by step) from the latest facts.
   const quest = useQuestSession(
     session,
-    { kind: 'mission', owner: save.createdAt, day: todayLocal(), step, difficulty },
+    { kind: 'mission', owner: save.createdAt, day: todayLocal(), step, difficulty, skip: skipTablesOf(save.settings).join(',') },
     (): Question[] => {
       const today = todayLocal();
+      const facts = playFacts(save);
       return step === 'warmup'
-        ? buildWarmup(save.facts, today, rng)
-        : buildQuest(save.facts, { today, allowNew: true, size: questSize }, rng);
+        ? buildWarmup(facts, today, rng)
+        : buildQuest(facts, { today, allowNew: true, size: questSize }, rng);
     },
   );
 
@@ -47,7 +50,7 @@ function MissionQuest({ step }: { step: 'warmup' | 'quest1' | 'quest2' | 'quest3
       dispatch({ type: 'answer', factId, answer, today: todayLocal(), mode: 'normal', activeSeconds }),
     [dispatch],
   );
-  const parts = shipParts(save.bossesBeaten);
+  const parts = shipParts(save.bossesBeaten, playFacts(save));
   const clearQuest = quest.clear;
   const onComplete = useCallback(
     (summary: Summary) => {
@@ -80,9 +83,9 @@ function MissionBoss() {
   const [rng] = useState(() => createRng(Date.now()));
   // Captured once when the step starts so later progress can't change the boss mid-fight.
   const [planet] = useState<PlanetId | null>(() =>
-    availableBoss(state.save!.facts, state.save!.bossesBeaten),
+    availableBoss(playFacts(state.save!), state.save!.bossesBeaten),
   );
-  const [facts] = useState(() => state.save!.facts);
+  const [facts] = useState(() => playFacts(state.save!));
   const advanced = useRef(false);
 
   useEffect(() => {

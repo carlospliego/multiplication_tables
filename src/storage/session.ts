@@ -17,8 +17,8 @@ export type QuestStep = Extract<MissionStep, 'warmup' | 'quest1' | 'quest2' | 'q
 
 /** Which quest a snapshot belongs to. A snapshot is only resumed into an identical context. */
 export type QuestContext =
-  | { kind: 'mission'; owner: string; day: Day; step: QuestStep; difficulty: Difficulty }
-  | { kind: 'freeFlight'; owner: string; day: Day; difficulty: Difficulty };
+  | { kind: 'mission'; owner: string; day: Day; step: QuestStep; difficulty: Difficulty; skip: string }
+  | { kind: 'freeFlight'; owner: string; day: Day; difficulty: Difficulty; skip: string };
 
 export interface QuestSnapshot {
   context: QuestContext;
@@ -103,7 +103,7 @@ function validRun(x: unknown): x is QuestRun {
 
 function validContext(x: unknown): x is QuestContext {
   if (!isRecord(x) || typeof x.owner !== 'string' || typeof x.day !== 'string') return false;
-  if (!isDifficulty(x.difficulty)) return false;
+  if (!isDifficulty(x.difficulty) || typeof x.skip !== 'string') return false;
   if (x.kind === 'freeFlight') return true;
   return x.kind === 'mission' && ['warmup', 'quest1', 'quest2', 'quest3'].includes(x.step as string);
 }
@@ -114,6 +114,7 @@ export function sameContext(a: QuestContext, b: QuestContext): boolean {
     a.owner === b.owner &&
     a.day === b.day &&
     a.difficulty === b.difficulty &&
+    a.skip === b.skip &&
     (a.kind !== 'mission' || (b.kind === 'mission' && a.step === b.step))
   );
 }

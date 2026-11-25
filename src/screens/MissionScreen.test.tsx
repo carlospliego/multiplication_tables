@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
-vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+// These tests cover the full game rules, so saves skip nothing here (see src/skip.test.tsx).
+vi.mock('../skip', () => import('../testing/skipNothing').then((m) => m.skipNothing()));
 
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

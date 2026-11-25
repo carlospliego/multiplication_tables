@@ -1,5 +1,5 @@
 import type { FactId, Facts, PlanetId, Question, Rng } from './types';
-import { PLANETS, makeQuestion } from './facts';
+import { PLANETS, makeQuestion, planetFactIds } from './facts';
 import { openPlanets } from './progress';
 
 export const BOSS_SHIELD = 12;
@@ -19,7 +19,7 @@ export function startBoss(planet: PlanetId): BossRun {
 }
 
 function weightedPick(ids: FactId[], facts: Facts, rng: Rng): FactId {
-  const weights = ids.map((id) => 6 - facts[id]!.level);
+  const weights = ids.map((id) => 6 - (facts[id]?.level ?? 0));
   let r = rng() * weights.reduce((s, w) => s + w, 0);
   for (let i = 0; i < ids.length; i++) {
     r -= weights[i]!;
@@ -29,16 +29,18 @@ function weightedPick(ids: FactId[], facts: Facts, rng: Rng): FactId {
 }
 
 export function nextBossQuestion(facts: Facts, run: BossRun, rng: Rng): Question {
+  // `facts` is the facts in play (see factsInPlay): skipped facts are never asked.
   const introduced = (id: FactId): boolean => facts[id]!.level >= 1 && id !== run.lastFactId;
-  const own = PLANETS[run.planet - 1]!.factIds.filter(introduced);
+  const own = planetFactIds(run.planet, facts).filter(introduced);
   const open = openPlanets(facts).filter((p) => p < run.planet);
-  const earlier = open.flatMap((p) => PLANETS[p - 1]!.factIds.filter(introduced));
+  const earlier = open.flatMap((p) => planetFactIds(p, facts).filter(introduced));
 
   let pool = rng() < PLANET_SHARE ? own : earlier;
   if (pool.length === 0) pool = own.length > 0 ? own : earlier;
   if (pool.length === 0) {
     // Degenerate (e.g. a single-fact boss planet with no review pool): allow the repeat.
-    pool = PLANETS[run.planet - 1]!.factIds;
+    const inPlay = planetFactIds(run.planet, facts);
+    pool = inPlay.length > 0 ? inPlay : PLANETS[run.planet - 1]!.factIds;
   }
   return makeQuestion(weightedPick(pool, facts, rng), rng);
 }

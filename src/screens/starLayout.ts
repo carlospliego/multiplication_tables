@@ -1,4 +1,3 @@
-import { ALL_FACT_IDS } from '../engine/facts';
 import type { FactId } from '../engine/types';
 
 // 45 points tracing a rocket in a 0-100 box, most important first: outline, base, fins and flame
@@ -33,9 +32,12 @@ const POINTS: readonly (readonly [number, number])[] = [
   [10, 12], [90, 12], [12, 34], [88, 34], [8, 54], [92, 54], [30, 9],
 ];
 
-export const STAR_POSITIONS: Record<FactId, { x: number; y: number }> = Object.fromEntries(
-  ALL_FACT_IDS.map((id, i) => {
-    const [x, y] = POINTS[i]!;
-    return [id, { x, y }];
-  }),
-);
+/** Positions for the stars of the given facts (at most 45), in order. */
+export function starPositions(ids: readonly FactId[]): Record<FactId, { x: number; y: number }> {
+  return Object.fromEntries(
+    ids.map((id, i) => {
+      const [x, y] = POINTS[i]!;
+      return [id, { x, y }];
+    }),
+  );
+}

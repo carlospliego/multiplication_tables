@@ -1,6 +1,5 @@
-import type { FactId, PlanetId, Question, Rng } from './types';
+import type { FactId, Facts, PlanetId, Question, Rng } from './types';
 import { pick } from './rng';
-import { SKIP_TABLES } from '../skip';
 
 export const TABLE_ORDER = [1, 2, 5, 3, 4, 9, 6, 7, 8] as const;
 
@@ -35,14 +34,8 @@ export function planetOf(id: FactId): PlanetId {
   return (Math.min(orderIndex(a), orderIndex(b)) + 1) as PlanetId;
 }
 
-/** True when either factor is in the skip list (src/skip.ts). */
-export function isSkipped(id: FactId): boolean {
-  const { a, b } = parseFact(id);
-  return SKIP_TABLES.includes(a) || SKIP_TABLES.includes(b);
-}
-
-/** All 45 facts, skipped or not: the save format always stores every one. */
-export const STORED_FACT_IDS: readonly FactId[] = TABLE_ORDER.flatMap((table, i) => {
+/** All 45 facts in table order. Saves always store every one, skipped or not. */
+export const ALL_FACT_IDS: readonly FactId[] = TABLE_ORDER.flatMap((table, i) => {
   const ids: FactId[] = [];
   for (let other = 1; other <= 9; other++) {
     const id = factId(table, other);
@@ -51,12 +44,9 @@ export const STORED_FACT_IDS: readonly FactId[] = TABLE_ORDER.flatMap((table, i)
   return ids;
 });
 
-/**
- * Indexed by planet id (PLANETS[id - 1]). Each planet lists only the facts in play, so a planet
- * whose table is skipped has no facts; ACTIVE_PLANETS is the list to show and progress through.
- */
+/** Indexed by planet id (PLANETS[id - 1]), with every fact. Use planetFactIds for the ones in play. */
 export const PLANETS: readonly PlanetInfo[] = TABLE_ORDER.map((table, i) => {
-  const factIds = STORED_FACT_IDS.filter((id) => planetOf(id) === i + 1 && !isSkipped(id));
+  const factIds = ALL_FACT_IDS.filter((id) => planetOf(id) === i + 1);
   return {
     id: (i + 1) as PlanetId,
     name: NAMES[i] as string,
@@ -67,29 +57,51 @@ export const PLANETS: readonly PlanetInfo[] = TABLE_ORDER.map((table, i) => {
   };
 });
 
-/** Planets that still have facts after skipping, in table order. */
-export const ACTIVE_PLANETS: readonly PlanetInfo[] = PLANETS.filter((p) => p.factIds.length > 0);
+/*
+ * Facts in play. The engine treats the facts object it is given as the facts in play: callers
+ * pass factsInPlay(save.facts, skip) (see playFacts in storage/save.ts), and every fact missing
+ * from it is skipped. With nothing skipped that is all 45.
+ */
 
-/** The planet the game starts on: open from day one, so it is never celebrated as new. */
-export const FIRST_PLANET: PlanetId | undefined = ACTIVE_PLANETS[0]?.id;
+/** True when either factor is in the skip list. */
+export function isSkipped(id: FactId, skip: readonly number[]): boolean {
+  const { a, b } = parseFact(id);
+  return skip.includes(a) || skip.includes(b);
+}
 
-/** Every fact in play (skipped facts left out). */
-export const ALL_FACT_IDS: readonly FactId[] = PLANETS.flatMap((p) => p.factIds);
+/** The facts with no skipped factor, in table order. */
+export function factsInPlay(facts: Facts, skip: readonly number[]): Facts {
+  const out: Facts = {};
+  for (const id of ALL_FACT_IDS) {
+    const rec = facts[id];
+    if (rec && !isSkipped(id, skip)) out[id] = rec;
+  }
+  return out;
+}
 
-/** How many facts are in play: 28 with ×1 and ×2 skipped, 45 with nothing skipped. */
-export const FACT_COUNT = ALL_FACT_IDS.length;
+/** A planet's facts that are in play. */
+export function planetFactIds(planet: PlanetId, facts: Facts): FactId[] {
+  return PLANETS[planet - 1]!.factIds.filter((id) => id in facts);
+}
 
-/** Numbers that still appear in the game (1-9 minus the skip list). */
-export const ACTIVE_NUMBERS: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((n) => !SKIP_TABLES.includes(n));
+/** Planets with at least one fact in play, in table order. */
+export function activePlanets(facts: Facts): PlanetInfo[] {
+  return PLANETS.filter((p) => planetFactIds(p.id, facts).length > 0);
+}
 
-/** Ship parts for the bosses beaten on planets still in play. */
-export function shipParts(bossesBeaten: readonly PlanetId[]): string[] {
-  return bossesBeaten.filter((p) => PLANETS[p - 1]!.factIds.length > 0).map((p) => PLANETS[p - 1]!.shipPart);
+/** Numbers 1-9 that are not skipped. */
+export function activeNumbers(skip: readonly number[]): number[] {
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((n) => !skip.includes(n));
 }
 
 /** Bosses beaten on planets still in play. */
-export function activeBossesBeaten(bossesBeaten: readonly PlanetId[]): PlanetId[] {
-  return bossesBeaten.filter((p) => PLANETS[p - 1]!.factIds.length > 0);
+export function activeBossesBeaten(bossesBeaten: readonly PlanetId[], facts: Facts): PlanetId[] {
+  return bossesBeaten.filter((p) => planetFactIds(p, facts).length > 0);
+}
+
+/** Ship parts for the bosses beaten on planets still in play. */
+export function shipParts(bossesBeaten: readonly PlanetId[], facts: Facts): string[] {
+  return activeBossesBeaten(bossesBeaten, facts).map((p) => PLANETS[p - 1]!.shipPart);
 }
 
 const TIPS: Record<number, string> = {

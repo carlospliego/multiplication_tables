@@ -4,13 +4,16 @@ import { placementQuestions } from '../engine/placement';
 import { createRng } from '../engine/rng';
 import { todayLocal } from '../engine/dates';
 import { useGame } from '../state/GameContext';
+import { playFacts } from '../storage/save';
 import styles from './SystemsCheck.module.css';
 
 export const LOGGED_MS = 700;
 
 export function SystemsCheck() {
-  const { dispatch } = useGame();
-  const [questions] = useState(() => placementQuestions(createRng(Date.now())));
+  const { state, dispatch } = useGame();
+  const [questions] = useState(() =>
+    state.save ? placementQuestions(playFacts(state.save), createRng(Date.now())) : [],
+  );
   const [index, setIndex] = useState(0);
   const [logged, setLogged] = useState(false);
   const lastAt = useRef(performance.now());
@@ -22,7 +25,7 @@ export function SystemsCheck() {
 
   const q = questions[index];
 
-  // Every placement table skipped (src/skip.ts): nothing to check, go straight to the map.
+  // Every placement table skipped: nothing to check, go straight to the map.
   useEffect(() => {
     if (questions.length === 0) dispatch({ type: 'finishPlacement' });
   }, [questions.length, dispatch]);

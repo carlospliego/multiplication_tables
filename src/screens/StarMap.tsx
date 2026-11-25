@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ALL_FACT_IDS, FACT_COUNT, parseFact } from '../engine/facts';
+import { parseFact } from '../engine/facts';
+import { playFacts } from '../storage/save';
 import { masteredCount, starStates } from '../engine/progress';
 import type { StarState } from '../engine/progress';
 import type { FactId } from '../engine/types';
 import { Starfield } from '../components/Starfield';
 import { useGame } from '../state/GameContext';
-import { STAR_POSITIONS } from './starLayout';
+import { starPositions } from './starLayout';
 import styles from './StarMap.module.css';
 
 const WORDS: Record<StarState, string> = {
@@ -40,19 +41,22 @@ export function StarMap() {
   const save = state.save;
   const [selected, setSelected] = useState<FactId | null>(null);
   if (!save) return null;
-  const states = starStates(save.facts);
-  const lit = masteredCount(save.facts);
+  const facts = playFacts(save);
+  const ids = Object.keys(facts);
+  const positions = starPositions(ids);
+  const states = starStates(facts);
+  const lit = masteredCount(facts);
 
   return (
     <main className={styles.screen}>
       <Starfield />
       <h1 className={styles.title}>Star Map</h1>
-      <p className={styles.counter}>{`★ ${lit} / ${FACT_COUNT} stars lit`}</p>
+      <p className={styles.counter}>{`★ ${lit} / ${ids.length} stars lit`}</p>
       <div className={styles.body}>
         <div className={styles.sky} role="group" aria-label="Rocket constellation">
-          {ALL_FACT_IDS.map((id) => {
+          {ids.map((id) => {
             const s = states[id]!;
-            const pos = STAR_POSITIONS[id]!;
+            const pos = positions[id]!;
             return (
               <button
                 key={id}

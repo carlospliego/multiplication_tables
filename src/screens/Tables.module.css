@@ -1,0 +1,15 @@
+.screen { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+.screen > *:not(:first-child) { position: relative; }
+.title { margin: 0; font-size: clamp(1.8rem, 6vmin, 2.8rem); }
+.sub { margin: 0; text-align: center; font-size: 1.1rem; color: var(--ink-dim); max-width: 420px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: min(100%, 420px); }
+.table { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 96px; padding: 8px; font: inherit; color: var(--ink); border-radius: var(--radius); border: 3px solid var(--neon-cyan); background: var(--space-panel); cursor: pointer; }
+.table[aria-pressed='false'] { border-style: dashed; border-color: var(--ink-dim); background: transparent; color: var(--ink-dim); }
+.table[aria-pressed='false'] .num { text-decoration: line-through; text-decoration-thickness: 3px; }
+.table:disabled { cursor: not-allowed; opacity: 0.75; }
+.num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+.state { font-size: 0.95rem; font-weight: 700; }
+.table[aria-pressed='true'] .state { color: var(--neon-lime); }
+.note { margin: 0; min-height: 1.4em; text-align: center; font-size: 1rem; color: var(--ink-dim); }
+.note span { color: var(--neon-yellow); font-weight: 700; }
+.back { min-height: 56px; padding: 0 32px; font: inherit; font-size: 1.3rem; font-weight: 800; border-radius: 14px; border: 0; background: var(--neon-lime); color: var(--space-bg); cursor: pointer; }

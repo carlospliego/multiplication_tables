@@ -13,7 +13,7 @@ import {
 import type { QuestContext } from './session';
 
 const mk = (a: number, b: number): Question => ({ factId: `${Math.min(a, b)}x${Math.max(a, b)}`, a, b, answer: a * b, kind: 'normal' });
-const ctx: QuestContext = { kind: 'mission', owner: '2026-11-02T10:00:00.000Z', day: '2026-11-23', step: 'quest1', difficulty: 'normal' };
+const ctx: QuestContext = { kind: 'mission', owner: '2026-11-02T10:00:00.000Z', day: '2026-11-23', step: 'quest1', difficulty: 'normal', skip: '1,2' };
 const run = recordQuestResult(startQuestRun([mk(3, 6), mk(4, 3), mk(5, 5)]), true, true, () => 0);
 
 describe('session screen', () => {
@@ -36,14 +36,15 @@ describe('quest snapshot', () => {
     expect(snap?.introduced).toEqual(['3x6']);
   });
 
-  it('is ignored when the save, day, step, kind or difficulty differ', () => {
+  it('is ignored when the save, day, step, kind, difficulty or skip list differ', () => {
     const s = getSessionStorage();
     writeQuestSnapshot(s, { context: ctx, run, introduced: [] });
     expect(loadQuestSnapshot(s, { ...ctx, owner: 'other' })).toBeNull();
     expect(loadQuestSnapshot(s, { ...ctx, day: '2026-11-24' })).toBeNull();
     expect(loadQuestSnapshot(s, { ...ctx, step: 'quest2' })).toBeNull();
     expect(loadQuestSnapshot(s, { ...ctx, difficulty: 'hard' })).toBeNull();
-    expect(loadQuestSnapshot(s, { kind: 'freeFlight', owner: ctx.owner, day: ctx.day, difficulty: 'normal' })).toBeNull();
+    expect(loadQuestSnapshot(s, { ...ctx, skip: '1,2,7' })).toBeNull();
+    expect(loadQuestSnapshot(s, { kind: 'freeFlight', owner: ctx.owner, day: ctx.day, difficulty: 'normal', skip: '1,2' })).toBeNull();
   });
 
   it('rejects malformed snapshots', () => {
@@ -56,8 +57,6 @@ describe('quest snapshot', () => {
     expect(bad({ run: { ...run, index: 99 } })).toBeNull();
     expect(bad({ run: { ...run, queue: [{ ...mk(3, 6), answer: 7 }] } })).toBeNull();
     expect(bad({ run: { ...run, queue: [mk(10, 10)] } })).toBeNull();
-    // a skipped fact (src/skip.ts) is not in play, so a quest holding one is not resumed
-    expect(bad({ run: { ...run, queue: [mk(2, 7)] } })).toBeNull();
     expect(bad({ run: { ...run, lightning: 5 } })).toBeNull();
     expect(bad({ introduced: ['nope'] })).toBeNull();
     s.setItem(SESSION_QUEST_KEY, '{not json');

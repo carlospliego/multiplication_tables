@@ -7,6 +7,8 @@ import { buildQuest } from '../engine/scheduler';
 import type { AnswerInput, FactId, Question } from '../engine/types';
 import { shipParts } from '../engine/facts';
 import { useGame } from '../state/GameContext';
+import { playFacts } from '../storage/save';
+import { skipTablesOf } from '../skip';
 import { QuestScreen } from './QuestScreen';
 
 function FreeFlightRound({ onNext }: { onNext(): void }) {
@@ -17,8 +19,8 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
   const { fastMs, questSize } = DIFFICULTY[difficulty];
   const quest = useQuestSession(
     session,
-    { kind: 'freeFlight', owner: save.createdAt, day: todayLocal(), difficulty },
-    (): Question[] => buildQuest(save.facts, { today: todayLocal(), allowNew: false, size: questSize }, rng),
+    { kind: 'freeFlight', owner: save.createdAt, day: todayLocal(), difficulty, skip: skipTablesOf(save.settings).join(',') },
+    (): Question[] => buildQuest(playFacts(save), { today: todayLocal(), allowNew: false, size: questSize }, rng),
   );
   const queue = quest.queue;
   const clearQuest = quest.clear;
@@ -45,7 +47,7 @@ function FreeFlightRound({ onNext }: { onNext(): void }) {
       title="Free Flight"
       queue={queue}
       rng={rng}
-      parts={shipParts(save.bossesBeaten)}
+      parts={shipParts(save.bossesBeaten, playFacts(save))}
       fastMs={fastMs}
       initialRun={quest.initialRun}
       initialIntroduced={quest.initialIntroduced}

@@ -1,5 +1,5 @@
 import { compareDays } from './dates';
-import { isSkipped, makeQuestion, PLANETS } from './facts';
+import { makeQuestion, planetFactIds } from './facts';
 import { isDue } from './levels';
 import { frontierPlanet } from './progress';
 import { pick, shuffle } from './rng';
@@ -19,9 +19,9 @@ export interface BuildOptions {
   size?: number;
 }
 
-/** Facts in play: the save also stores skipped facts, which are never asked. */
+/** `facts` is the facts in play (see factsInPlay): skipped facts are not in it. */
 function ids(facts: Facts): FactId[] {
-  return Object.keys(facts).filter((id) => !isSkipped(id));
+  return Object.keys(facts);
 }
 
 function pickNewFacts(facts: Facts, allowNew: boolean): FactId[] {
@@ -29,7 +29,7 @@ function pickNewFacts(facts: Facts, allowNew: boolean): FactId[] {
   if (ids(facts).filter((id) => facts[id]!.level === 1).length >= MAX_LEVEL1_FOR_NEW) return [];
   const planet = frontierPlanet(facts);
   if (planet === null) return [];
-  return PLANETS[planet - 1]!.factIds.filter((id) => facts[id]!.level === 0).slice(0, MAX_NEW_PER_QUEST);
+  return planetFactIds(planet, facts).filter((id) => facts[id]!.level === 0).slice(0, MAX_NEW_PER_QUEST);
 }
 
 /** Introduced facts of lowest level first, random among ties. */

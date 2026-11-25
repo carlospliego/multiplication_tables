@@ -3,12 +3,14 @@ import { FactGrid, LEVEL_NAME } from '../components/FactGrid';
 import { Starfield } from '../components/Starfield';
 import { todayLocal } from '../engine/dates';
 import { DIFFICULTY, difficultyOf } from '../engine/difficulty';
-import { activeBossesBeaten, FACT_COUNT, parseFact } from '../engine/facts';
+import { activeBossesBeaten, activeNumbers, parseFact } from '../engine/facts';
+import { skipTablesOf } from '../skip';
 import { displayStreak } from '../engine/mission';
 import { masteredCount } from '../engine/progress';
 import { factStats, lastNDays } from '../engine/stats';
 import type { FactId } from '../engine/types';
 import { downloadSave, parseImport } from '../storage/backup';
+import { playFacts } from '../storage/save';
 import type { SaveData } from '../storage/save';
 import { useGame } from '../state/GameContext';
 import styles from './ParentDashboard.module.css';
@@ -41,6 +43,8 @@ export function ParentDashboard() {
 
   const today = todayLocal();
   const level = DIFFICULTY[difficultyOf(save.settings)];
+  const skip = skipTablesOf(save.settings);
+  const facts = playFacts(save);
   const week = lastNDays(save.dailyActiveSeconds, today, 7);
   const weekSeconds = week.reduce((sum, d) => sum + d.seconds, 0);
   const maxSeconds = Math.max(60, ...week.map((d) => d.seconds));
@@ -65,11 +69,12 @@ export function ParentDashboard() {
 
       <section className={styles.panel} aria-labelledby="summary-title">
         <h2 id="summary-title" className={styles.h2}>Summary</h2>
-        <p className={styles.stars}>{`★ ${masteredCount(save.facts)} / ${FACT_COUNT}`}</p>
+        <p className={styles.stars}>{`★ ${masteredCount(facts)} / ${Object.keys(facts).length}`}</p>
         <dl className={styles.stats}>
           <div><dt>Current streak</dt><dd>{displayStreak(save.streak, today)}</dd></div>
           <div><dt>Best streak</dt><dd>{save.streak.best}</dd></div>
-          <div><dt>Planets freed</dt><dd>{activeBossesBeaten(save.bossesBeaten).length}</dd></div>
+          <div><dt>Planets freed</dt><dd>{activeBossesBeaten(save.bossesBeaten, facts).length}</dd></div>
+          <div><dt>Skipped tables</dt><dd>{skip.length === 0 ? 'None' : skip.map((n) => `×${n}`).join(' ')}</dd></div>
           <div><dt>Difficulty</dt><dd>{level.label}</dd></div>
         </dl>
         <p className={`${styles.note} ${styles.difficultyNote}`}>
@@ -79,7 +84,7 @@ export function ParentDashboard() {
 
       <section className={styles.panel} aria-labelledby="grid-title">
         <h2 id="grid-title" className={styles.h2}>Facts</h2>
-        <FactGrid facts={save.facts} selected={selected} onSelect={setSelected} />
+        <FactGrid facts={save.facts} numbers={activeNumbers(skip)} selected={selected} onSelect={setSelected} />
         {selected && rec && stats && fact && (
           <section className={styles.detail} role="region" aria-label="Fact detail">
             <h3 className={styles.h3}>{`${fact.a} × ${fact.b}`}</h3>

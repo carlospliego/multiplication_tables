@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-// These tests cover the full game rules, so nothing is skipped here (see src/skip.test.ts).
-vi.mock('../skip', () => ({ SKIP_TABLES: [] }));
+import { describe, expect, it } from 'vitest';
 
 import { PLANETS } from './facts';
 import {
